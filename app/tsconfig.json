@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "target": "es5",
+        "module": "es6",
+        "moduleResolution": "node",  
+        "declaration": false,
+        "emitDecoratorMetadata": true,
+        "downlevelIteration": true,
+        "sourceMap": true,
+        "strictNullChecks": true,
+        "allowJs": true,
+        "outDir": "../www/public",
+        "experimentalDecorators": true,
+        "lib": [
+            "dom",
+            "es5",
+            "es7",
+            "es2015.promise",
+            "es2017.object"
+        ]
+    },
+    "include": [
+        "./**/*"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}

@@ -1,0 +1,6 @@
+www/node_modules
+www/.env
+api/node_modules
+app/node_modules
+telegram/node_modules
+whatsapp/node_modules

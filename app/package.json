@@ -1,0 +1,28 @@
+{
+  "name": "liu-app",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "http-server www/ -p 9876 -c -i",
+    "compile": "rollup -c -w"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@emotion/css": "^11.13.5",
+    "@supabase/supabase-js": "^2.54.0"
+  }
+}

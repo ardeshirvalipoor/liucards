@@ -1,0 +1,9 @@
+[submodule "app/base"]
+	path = app/base
+	url = git@github.com:ardeshirvalipoor/base.git
+[submodule "api/base"]
+	path = api/base
+	url = https://github.com/ardeshirvalipoor/express-typescript-base
+[submodule "app/lib/jalaali-js"]
+	path = app/lib/jalaali-js
+	url = https://github.com/jalaali/jalaali-js.git

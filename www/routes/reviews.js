@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.reviewsRouter = void 0;
+const express_1 = require("express");
+const controllers_1 = require("../controllers");
+const middlewares_1 = require("../middlewares");
+exports.reviewsRouter = (0, express_1.Router)();
+exports.reviewsRouter.use(middlewares_1.default.auth.required);
+exports.reviewsRouter.get('/queue', controllers_1.default.reviews.getQueue);
+exports.reviewsRouter.post('/', controllers_1.default.reviews.post);
+exports.default = exports.reviewsRouter;

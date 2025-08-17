@@ -1,0 +1,23 @@
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Auth</title>
+    <script type="text/javascript">
+        try {
+            var token = location.search.split('&')[0].split('?code=')[1]
+            window.opener.postMessage(token, '*')
+            // window.close(); 
+
+        } catch (error) {
+            alert(error)
+        }
+        // possibleCode = /code=(.*)(?=\&)/.exec(location.search)
+        // window.opener.authenticateCallback(possibleCode); //Call callback function 
+        // window.close(); 
+    </script>
+</head>
+
+<body></body>
+
+</html>

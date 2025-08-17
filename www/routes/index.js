@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const cards_1 = require("./cards");
+const reviews_1 = require("./reviews");
+const router = (0, express_1.Router)({ strict: true });
+router.get('/favicon.ico', (req, res) => res.end());
+router.use('/api/v1/cards', cards_1.default);
+router.use('/api/v1/reviews', reviews_1.default);
+exports.default = router;
