@@ -1,0 +1,33 @@
+meta {
+  name: Answer Review
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:8080/api/v1/reviews
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{personal_token}}
+}
+
+body:json {
+  {
+    "saved_card_id": "44525af9-799a-47f9-999e-c45db230f698",
+    "rating": 1,
+    "duration_ms": 6000,
+    "client_reviewed_at": "2025-08-19T19:20:30Z",
+    "correct": false,
+    "confidence": 2,
+    "think_time_ms": 2200,
+    "session_id": "beb154e5-bfe1-4cbb-a168-8bb8f8bac92b"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+}

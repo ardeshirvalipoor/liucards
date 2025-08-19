@@ -1,0 +1,26 @@
+meta {
+  name: Start Session
+  type: http
+  seq: 7
+}
+
+post {
+  url: http://localhost:8080/api/v1/reviews/sessions/start
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{personal_token}}
+}
+
+body:json {
+  {
+    "device_type": "web"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+}

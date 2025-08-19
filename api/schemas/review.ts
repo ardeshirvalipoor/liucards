@@ -6,23 +6,26 @@ export const getQueueQuerySchema = z.object({
 		.union([z.literal('true'), z.literal('false')])
 		.optional()
 		.transform(v => v === 'true'),
+	device_id: z.string().optional(),  // Changed to string for consistency (assuming text type)
 })
 
 export type GetQueueQuery = z.infer<typeof getQueueQuerySchema>
 
 export const submitReviewBodySchema = z.object({
 	saved_card_id: z.uuid(),
-	rating: z.number().int().min(0).max(3),           // 0 again, 1 hard, 2 good, 3 easy
+	rating: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),    // 0 again, 1 hard, 2 good, 3 easy
 	duration_ms: z.number().int().min(0).optional(),  // optional UX metric
 	client_reviewed_at: z.iso.datetime().optional(),
-
 	// Optional signals for future ML (all optional)
 	correct: z.boolean().optional(),
 	confidence: z.number().int().min(0).max(3).optional(),
 	think_time_ms: z.number().int().min(0).optional(),
-	hint_count: z.number().int().min(0).optional(),
-	revealed_back: z.boolean().optional(),
 	session_id: z.uuid().optional(),
-	answer_text: z.string().max(2000).optional(),
+	device_id: z.string().optional(),
+	// hint_count: z.number().int().min(0).optional(),
+	// revealed_back: z.boolean().optional(),
+	// answer_text: z.string().max(2000).optional(),
+	// Added for anonymous support
 })
+
 export type SubmitReviewBody = z.infer<typeof submitReviewBodySchema>

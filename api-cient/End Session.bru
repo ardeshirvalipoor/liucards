@@ -1,0 +1,29 @@
+meta {
+  name: End Session
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/api/v1/reviews/sessions/end
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{personal_token}}
+}
+
+body:json {
+  {
+    "session_id": "beb154e5-bfe1-4cbb-a168-8bb8f8bac92b",
+    "cards_studied": 2,
+    "cards_correct": 1,
+    "total_time_ms": 11500
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+}

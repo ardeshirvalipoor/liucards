@@ -47,7 +47,7 @@ export const AddFlashcardPage = () => {
 		const cardData = {
 			front: question.getValue(),
 			back: answer.getValue(),
-			creator_device_id: ldb.get('liucards-device-id')
+			device_id: ldb.get('liucards-device-id')
 		}
 		await services.cards.save(cardData)
 		question.setValue('')

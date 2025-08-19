@@ -2,14 +2,16 @@ import { Router } from 'express'
 import controllers from '../controllers'
 import middlewares from '../middlewares'
 
-export const reviewsRouter = Router()
+export const router = Router()
 
-reviewsRouter.use(middlewares.auth.required)
-reviewsRouter.get('/queue', controllers.reviews.getQueue)
-reviewsRouter.post('/', controllers.reviews.post)
+router.use(middlewares.auth.optional)
+router.get('/queue', controllers.reviews.getQueue)
+router.post('/', controllers.reviews.post)
+
+router.post('/sessions/start', controllers.studySessions.start)
+router.post('/sessions/end', controllers.studySessions.end)
 
 
-
-export default reviewsRouter
+export default router
 
     

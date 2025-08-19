@@ -15,8 +15,6 @@ export const HomePage = () => {
     base.append(timeline)
 
     base.on('enter', () => {
-        console.log('home enter');
-        
         timeline.load()
     })
 

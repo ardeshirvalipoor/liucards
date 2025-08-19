@@ -12,8 +12,8 @@ async function create(params: {
 	// Insert into cards
 	const insertPayload: any = {
 		channel_id: null,
-		creator_user_id: userId,
-		creator_device_id: userId ? null : deviceId,
+		user_id: userId,
+		device_id: userId ? null : deviceId,
 		visibility: 'private',
 		front,
 		back,
@@ -109,8 +109,8 @@ async function list(params: {
 		let qCards = supabaseAdmin
 			.from('cards')
 			.select('id, front, back, created_at, updated_at')
-			.eq('creator_device_id', deviceId)
-			.is('creator_user_id', null)
+			.eq('device_id', deviceId)
+			.is('user_id', null)
 			.is('channel_id', null)
 			.eq('visibility', 'private')
 			.order('created_at', { ascending: false })
