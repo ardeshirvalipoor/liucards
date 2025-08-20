@@ -1,11 +1,8 @@
 import { Div } from "../../base/components/native/div";
-import { Img } from "../../base/components/native/img";
 import { EASE } from "../../base/helpers/style";
 import { IRouteParams } from "../../base/lib/router";
 import { waitFor } from "../../base/utils/wait";
-import images from "../../configs/images";
 import helpers from "../../helpers";
-import { ActionButton } from "../shared/action-button";
 
 export const AboutPage = () => {
     const base = Div()

@@ -6,6 +6,7 @@ import { AddFlashcardPage } from './pages/add-flashcard'
 import { HomePage } from './pages/home'
 import { LoginPage } from './pages/login'
 import { MenuPage } from './pages/menu'
+import { ReviewPage } from './pages/review'
 import { BackIcon } from './pages/shared/back-icon'
 import { MenuIcon } from './pages/shared/menu-icon'
 
@@ -22,6 +23,7 @@ const routes = {
     '/about': AboutPage,
     '/login': LoginPage,
     '/add-flashcard': AddFlashcardPage,
+    '/review': ReviewPage
 }
 
 router.init({ routes, view })

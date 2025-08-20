@@ -21,7 +21,7 @@ function getQueue(identifier_1, limit_1) {
       id, card_id, state, interval_days, ease, stability, difficulty,
       reps, lapses, due_at, last_reviewed_at,
       cards!inner ( front, back )
-    `)
+    `, { count: 'exact' })
             .lte('due_at', new Date().toISOString())
             .order('due_at', { ascending: true })
             .limit(limit);
@@ -32,10 +32,10 @@ function getQueue(identifier_1, limit_1) {
             q = q.eq('user_id', identifier);
         }
         // if (!includeNew) q = q.neq('state', 'new')
-        const { data, error } = yield q;
+        const { data, error, count } = yield q;
         if (error)
             throw new Error(error.message);
-        return (data !== null && data !== void 0 ? data : []).map(row => {
+        const items = (data !== null && data !== void 0 ? data : []).map(row => {
             var _a, _b;
             return ({
                 saved_card_id: row.id,
@@ -46,6 +46,8 @@ function getQueue(identifier_1, limit_1) {
                 due_at: row.due_at,
             });
         });
+        console.log(items);
+        return { items, count: count !== null && count !== void 0 ? count : 0 };
     });
 }
 function submit(identifier_1, body_1) {

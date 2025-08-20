@@ -28,19 +28,17 @@ async function create(params: {
 
 	if (e1) throw new Error(e1.message)
 
-	// If logged in, ensure saved_cards instance
-	if (userId) {
-		const { error: e2 } = await supabaseAdmin
-			.from('saved_cards')
-			.upsert({
-				user_id: userId,
-				card_id: card.id,
-				source_kind: 'self',
-				source_version: card.content_version
-			}, { onConflict: 'user_id,card_id' })
+	const { error: e2 } = await supabaseAdmin
+		.from('saved_cards')
+		.upsert({
+			user_id: userId,
+			device_id: deviceId,
+			card_id: card.id,
+			source_kind: 'self',
+			source_version: card.content_version
+		}, { onConflict: 'user_id,card_id' })
 
-		if (e2) throw new Error(e2.message)
-	}
+	if (e2) throw new Error(e2.message)
 
 	return { cardId: card.id }
 }
@@ -91,8 +89,8 @@ async function list(params: {
 			const { data, error } = await select
 			if (error) throw new Error(error.message)
 			const rows = (data ?? []).filter(r => {
-				const f = r.cards.front?.toLowerCase() ?? ''
-				const b = r.cards.back?.toLowerCase() ?? ''
+				const f = (r.cards as any).front?.toLowerCase() ?? ''
+				const b = (r.cards as any).back?.toLowerCase() ?? ''
 				const needle = q.toLowerCase()
 				return f.includes(needle) || b.includes(needle)
 			})

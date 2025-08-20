@@ -1691,6 +1691,82 @@
     }
     __assign({ all: all, get: get$2, add: add, update: update, count: count, remove: remove$1, isJoinedTheBot: isJoinedTheBot, unSynced: unSynced }, createEmitter());
 
+    var _reviewCache = [];
+    function loadMoreCardsToReview() {
+        return __awaiter$8(this, void 0, void 0, function () {
+            var device_id, auth, url, response, data;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        // Check if we have cached reviews
+                        if (_reviewCache.length > 0) {
+                            return [2 /*return*/, _reviewCache.shift()];
+                        }
+                        device_id = utils.device.getId();
+                        auth = services.supabase.auth.getSession();
+                        url = "/api/v1/reviews/queue?limit=10&device_id=".concat(device_id);
+                        return [4 /*yield*/, fetch(url, {
+                                headers: {
+                                    Authorization: "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token)
+                                }
+                            })];
+                    case 1:
+                        response = _a.sent();
+                        return [4 /*yield*/, response.json()];
+                    case 2:
+                        data = _a.sent();
+                        if (data.items.length === 0) {
+                            return [2 /*return*/, null];
+                        }
+                        _reviewCache.push.apply(_reviewCache, __spreadArray([], __read(data.items.map(function (item) { return ({
+                            added: false,
+                            card_id: item.card_id,
+                            saved_card_id: item.saved_card_id,
+                            front: item.front,
+                            back: item.back
+                        }); })), false));
+                        console.log(_reviewCache);
+                        return [4 /*yield*/, loadMoreCardsToReview()];
+                    case 3: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    }
+    // Submit review
+    // Todo: add SubmitReviewBody
+    function submitReview(savedCardId_1) {
+        return __awaiter$8(this, arguments, void 0, function (savedCardId, options) {
+            var deviceId, auth, body, headers, response;
+            if (options === void 0) { options = {}; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        deviceId = utils.device.getId();
+                        auth = services.supabase.auth.getSession();
+                        body = __assign({ saved_card_id: savedCardId, client_reviewed_at: new Date().toISOString(), device_id: deviceId }, options);
+                        headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token),
+                        };
+                        return [4 /*yield*/, fetch('/api/v1/reviews', {
+                                method: 'POST',
+                                headers: headers,
+                                body: JSON.stringify(body),
+                            })];
+                    case 1:
+                        response = _a.sent();
+                        if (!response.ok)
+                            throw new Error('Failed to submit review');
+                        return [2 /*return*/, response.json()]; // { ok: true, next: { ... } }
+                }
+            });
+        });
+    }
+    var reviews = {
+        loadMoreCardsToReview: loadMoreCardsToReview,
+        submitReview: submitReview
+    };
+
     const resolveFetch$3 = (customFetch) => {
         let _fetch;
         if (customFetch) {
@@ -10471,6 +10547,7 @@
     var services = {
         timeline: timeline,
         supabase: supabase$1,
+        reviews: reviews,
         cards: cards
     };
 
@@ -10863,7 +10940,7 @@
                         cardData = {
                             front: question.getValue(),
                             back: answer.getValue(),
-                            creator_device_id: ldb.get('liucards-device-id')
+                            device_id: ldb.get('liucards-device-id')
                         };
                         return [4 /*yield*/, services.cards.save(cardData)];
                     case 1:
@@ -11114,6 +11191,7 @@
     };
 
     var Card = function (_card) {
+        // Todo: add an interface
         var isFlipped = false;
         var base = Div();
         base.cssClass(baseStyle$4);
@@ -11128,8 +11206,8 @@
         var flip = Flip();
         flip.on('click', handleFlip);
         base.append(flip);
-        var like = Like(_card.added);
-        base.append(like);
+        Like(_card.added);
+        // base.append(like)
         // inner.el.addEventListener('touchstart', handleTouchStart)
         // inner.el.addEventListener('touchend', handleTouchEnd)
         function handleFlip() {
@@ -11215,7 +11293,6 @@
         var timeline = Timeline();
         base.append(timeline);
         base.on('enter', function () {
-            console.log('home enter');
             timeline.load();
         });
         return base;
@@ -11290,6 +11367,8 @@
 
     var MenuItem = function (title, target) {
         var base = Div(title);
+        if (target)
+            base.el.onclick = function () { return setTimeout(function () { return router.goto(target); }, 100); };
         withRipple(base, { bg: '#ccc' });
         base.cssClass({
             position: 'relative',
@@ -11309,6 +11388,7 @@
         var welcome = Div('');
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
+        var review = MenuItem('Review', '/review');
         var version = Div('Version 1.0.22').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
@@ -11316,7 +11396,7 @@
         handleButtons();
         emitter.on('auth:change', handleButtons);
         base.append(title, body);
-        body.append(welcome, login, logout, version);
+        body.append(welcome, login, logout, review, version);
         base.cssClass(helpers.styles.PAGE_BASE);
         login.el.addEventListener('click', function () { return __awaiter$8(void 0, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -11366,6 +11446,8 @@
                             base.style(helpers.styles.PAGE_EXIT_UP);
                         if (to === '/about')
                             base.style(helpers.styles.PAGE_EXIT_UP);
+                        if (to === '/review')
+                            base.style(helpers.styles.PAGE_EXIT_UP);
                         return [2 /*return*/];
                     });
                 });
@@ -11386,6 +11468,104 @@
                     });
                 });
             } });
+    };
+
+    var ReviewCard = function (_card) {
+        var base = Card(_card);
+        var buttons = Div();
+        buttons.cssClass({
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '72px',
+            justifyContent: 'space-between',
+            marginTop: '26px'
+        });
+        var dontKnow = Div('Don\'t know');
+        dontKnow.cssClass(__assign(__assign({}, CENTER), { lineHeight: '18px', textAlign: 'center', color: 'white', width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'rgba(175, 175, 175, 1)', cursor: 'pointer' }));
+        var iKnow = Div('I<br>know');
+        iKnow.cssClass(__assign(__assign({}, CENTER), { textAlign: 'center', lineHeight: '18px', color: 'white', width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'rgba(175, 175, 175, 1)', cursor: 'pointer' }));
+        buttons.append(dontKnow);
+        buttons.append(iKnow);
+        base.append(buttons);
+        iKnow.el.onclick = function () {
+            iKnow.cssClass({ backgroundColor: 'rgba(7, 197, 61, 0.8)' });
+            base.emit('iKnow');
+            iKnow.el.onclick = null;
+            dontKnow.el.onclick = null;
+        };
+        dontKnow.el.onclick = function () {
+            dontKnow.cssClass({ backgroundColor: 'crimson' });
+            base.emit('dontKnow');
+            dontKnow.el.onclick = null;
+            iKnow.el.onclick = null;
+        };
+        return base;
+    };
+
+    var ReviewPage = function () {
+        var base = Div();
+        var title = PageHeader('Study time');
+        var body = Body();
+        body.style({ padding: '0', scrollBehavior: 'smooth' });
+        base.append(title, body);
+        base.cssClass(helpers.styles.PAGE_BASE);
+        function render() {
+            return __awaiter$8(this, void 0, void 0, function () {
+                var cardData, reviewCard;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, services.reviews.loadMoreCardsToReview()];
+                        case 1:
+                            cardData = _a.sent();
+                            console.log({ cardData: cardData });
+                            if (!cardData) {
+                                base.append(Div('No cards to review'));
+                                return [2 /*return*/];
+                            }
+                            reviewCard = ReviewCard(cardData);
+                            reviewCard.on('iKnow', function () {
+                                render();
+                            });
+                            reviewCard.on('dontKnow', function () {
+                                render();
+                            });
+                            body.append(reviewCard);
+                            body.el.scrollTop = body.el.scrollHeight;
+                            return [2 /*return*/];
+                    }
+                });
+            });
+        }
+        return Object.assign(base, {
+            exit: function (_a) {
+                return __awaiter$8(this, arguments, void 0, function (_b) {
+                    _b.to;
+                    return __generator(this, function (_d) {
+                        base.style(helpers.styles.PAGE_EXIT);
+                        return [2 /*return*/];
+                    });
+                });
+            },
+            enter: function (_a) {
+                return __awaiter$8(this, arguments, void 0, function (_b) {
+                    _b.from;
+                    return __generator(this, function (_d) {
+                        switch (_d.label) {
+                            case 0: return [4 /*yield*/, waitFor(200)];
+                            case 1:
+                                _d.sent();
+                                body.empty(); // for now
+                                render();
+                                // if (from === '/menu') {
+                                //     base.style({ ...helpers.styles.PAGE_EXIT, ...EASE(0) })
+                                // }
+                                base.style(__assign(__assign({}, helpers.styles.PAGE_ENTER), EASE(.16)), 50);
+                                return [2 /*return*/];
+                        }
+                    });
+                });
+            }
+        });
     };
 
     var BackIcon = function () {
@@ -11504,6 +11684,7 @@
         '/about': AboutPage,
         '/login': LoginPage,
         '/add-flashcard': AddFlashcardPage,
+        '/review': ReviewPage
     };
     router.init({ routes: routes, view: view });
 
@@ -11522,6 +11703,7 @@
 
     (function () { return __awaiter$8(void 0, void 0, void 0, function () {
         function cleanupPage() {
+            emitter.emit('close-study-session');
         }
         var cards, cards_1, cards_1_1, card, payload, e_1_1, session, token;
         var e_1, _a;

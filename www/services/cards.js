@@ -31,19 +31,17 @@ function create(params) {
             .single();
         if (e1)
             throw new Error(e1.message);
-        // If logged in, ensure saved_cards instance
-        if (userId) {
-            const { error: e2 } = yield supabase_1.supabaseAdmin
-                .from('saved_cards')
-                .upsert({
-                user_id: userId,
-                card_id: card.id,
-                source_kind: 'self',
-                source_version: card.content_version
-            }, { onConflict: 'user_id,card_id' });
-            if (e2)
-                throw new Error(e2.message);
-        }
+        const { error: e2 } = yield supabase_1.supabaseAdmin
+            .from('saved_cards')
+            .upsert({
+            user_id: userId,
+            device_id: deviceId,
+            card_id: card.id,
+            source_kind: 'self',
+            source_version: card.content_version
+        }, { onConflict: 'user_id,card_id' });
+        if (e2)
+            throw new Error(e2.message);
         return { cardId: card.id };
     });
 }

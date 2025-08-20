@@ -22,8 +22,8 @@ async function getQueue(req: Request, res: Response) {
 	}
 
 	try {
-		const queue = await services.reviews.getQueue(identifier, limit, isDeviceId)
-		res.json({ queue, count: queue.length })
+		const {items, count} = await services.reviews.getQueue(identifier, limit, isDeviceId)
+		res.json({ items, count })
 	} catch (e: any) {
 		res.status(500).json({ error: e.message || 'Failed to load queue' })
 	}

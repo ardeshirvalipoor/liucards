@@ -19,6 +19,7 @@ export const MenuPage = () => {
     const welcome = Div('')
     const login = MenuItem('Login with Google')
     const logout = MenuItem('Logout')
+    const review = MenuItem('Review', '/review')
     const version = Div('Version 1.0.22').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' })
 
     welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' })
@@ -29,10 +30,9 @@ export const MenuPage = () => {
     handleButtons()
     emitter.on('auth:change', handleButtons)
     base.append(title, body)
-    body.append(welcome, login, logout, version)
+    body.append(welcome, login, logout, review, version)
     base.cssClass(helpers.styles.PAGE_BASE)
     login.el.addEventListener('click', async () => {
-
 		await services.supabase.auth.signInWithGoogle()
 		console.log('Logged in now apply user id');
 		await services.supabase.afterLoginMerge()
@@ -62,6 +62,7 @@ export const MenuPage = () => {
             base.style(helpers.styles.PAGE_EXIT)
             if (to === '/login') base.style(helpers.styles.PAGE_EXIT_UP)
             if (to === '/about') base.style(helpers.styles.PAGE_EXIT_UP)
+            if (to === '/review') base.style(helpers.styles.PAGE_EXIT_UP)
         },
         async enter({ from = '' }: IRouteParams) {
             await waitFor(200)

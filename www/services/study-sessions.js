@@ -49,7 +49,7 @@ function endSession(identifier_1, body_1) {
             owns = session.user_id === identifier;
         }
         if (!owns)
-            throw new Error('Forbidden');
+            throw new Error('Forbidden'); // cool
         // Update with aggregates
         const updates = {
             ended_at: new Date().toISOString(),

@@ -35,7 +35,7 @@ async function post(req: Request, res: Response) {
 async function list(req: Request, res: Response) {
     const parsed = listCardsQuerySchema.safeParse(req.query)
     if (!parsed.success) {
-        const msg = parsed.error.errors.map(e => e.message).join(', ')
+        const msg = parsed.error.issues.map(e => e.message).join(', ')
         return res.status(400).json({ error: msg })
     }
     const { limit, before, q, device_id, source, due_only } = parsed.data

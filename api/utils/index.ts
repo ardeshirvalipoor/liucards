@@ -1,7 +1,7 @@
-import jwt from './jwt'
+// import jwt from './jwt'
 import uuid from './uuid'
 
 export default {
-    jwt: jwt,
+    // jwt: jwt,
     uuid: uuid
 }

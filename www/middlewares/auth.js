@@ -35,6 +35,7 @@ function optional(req, res, next) {
             return next();
         const token = m[1];
         const { data } = yield supabase_1.supabaseAdmin.auth.getUser(token);
+        console.log('in optional', data, token);
         if (data === null || data === void 0 ? void 0 : data.user)
             req.user = data.user;
         next();

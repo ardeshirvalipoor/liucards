@@ -1,49 +1,61 @@
+import services from ".";
+import utils from "../utils";
+
 const API_BASE = '/api/reviews'; // Shared base
 
-// Start session
-async function startStudySession(deviceType: string) {
-	const headers = await getHeaders(); // From reviews client example
-	const { data: { user } } = await supabase.auth.getUser();
-	const isAnonymous = !user?.id;
+async function start() {
+	const deviceId = utils.device.getId();
+	const auth = services.supabase.auth.getSession()
 
-	const body: StartSessionBody = { device_type: deviceType };
-	if (isAnonymous) body.device_id = deviceId;
+	const headers = {
+		'Content-Type': 'application/json',
+		'Authorization': `Bearer ${auth?.access_token}`,
+	}
 
-	const response = await fetch(`${API_BASE}/sessions/start`, {
+	const body: any = {
+		"device_type": "web",
+		"device_id": deviceId,
+	}
+
+
+	const response = await fetch('/api/v1/reviews/sessions/start', {
 		method: 'POST',
 		headers,
 		body: JSON.stringify(body),
 	});
-	if (!response.ok) throw new Error('Failed to start session');
-	return response.json(); // { session_id: 'uuid' }
+	if (!response.ok) throw new Error('Failed to submit review');
+	return response.json(); // { ok: true, next: { ... } }
 }
 
-// End session
-async function endStudySession(sessionId: string, cardsStudied: number, cardsCorrect: number, totalTimeMs?: number) {
-	const headers = await getHeaders();
-	const { data: { user } } = await supabase.auth.getUser();
-	const isAnonymous = !user?.id;
 
-	const body: EndSessionBody = {
+
+// End session
+async function end(sessionId: string, cardsStudied: number, cardsCorrect: number, totalTimeMs?: number) {
+	const deviceId = utils.device.getId();
+	const auth = services.supabase.auth.getSession()
+
+	const headers = {
+		'Content-Type': 'application/json',
+		'Authorization': `Bearer ${auth?.access_token}`,
+	}
+	const body: any = {
 		session_id: sessionId,
 		cards_studied: cardsStudied,
 		cards_correct: cardsCorrect,
 		total_time_ms: totalTimeMs,
+		device_id: deviceId,
 	};
-	if (isAnonymous) body.device_id = deviceId;
 
-	const response = await fetch(`${API_BASE}/sessions/end`, {
+	const response = await fetch('/api/v1/reviews/sessions/end', {
 		method: 'POST',
 		headers,
 		body: JSON.stringify(body),
 	});
-	if (!response.ok) throw new Error('Failed to end session');
-	return response.json(); // { ok: true }
+	if (!response.ok) throw new Error('Failed to submit review');
+	return response.json(); // { ok: true, next: { ... } }
 }
 
-// Usage (e.g., wrap around reviews)
-startStudySession('web').then(({ session_id }) => {
-	// Submit reviews with session_id in body
-	// After done:
-	endStudySession(session_id, 10, 8, 30000).then(console.log);
-});
+export default {
+	start,
+	end,
+};

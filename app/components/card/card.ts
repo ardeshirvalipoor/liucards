@@ -10,6 +10,7 @@ import { Flip } from './flip'
 import { Like } from './like'
 
 export const Card = (_card: { front: string, back: string, added: boolean }) => {
+    // Todo: add an interface
     let isFlipped = false
     const base = Div()
     base.cssClass(baseStyle)
@@ -30,7 +31,7 @@ export const Card = (_card: { front: string, back: string, added: boolean }) => 
     base.append(flip)
 
     const like = Like(_card.added)
-    base.append(like)
+    // base.append(like)
 
 
 

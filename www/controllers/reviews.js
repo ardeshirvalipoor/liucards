@@ -31,8 +31,8 @@ function getQueue(req, res) {
             isDeviceId = true;
         }
         try {
-            const queue = yield services_1.default.reviews.getQueue(identifier, limit, isDeviceId);
-            res.json({ queue, count: queue.length });
+            const { items, count } = yield services_1.default.reviews.getQueue(identifier, limit, isDeviceId);
+            res.json({ items, count });
         }
         catch (e) {
             res.status(500).json({ error: e.message || 'Failed to load queue' });

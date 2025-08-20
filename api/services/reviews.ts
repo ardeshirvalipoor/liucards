@@ -11,7 +11,7 @@ async function getQueue(identifier: string, limit: number, isDeviceId: boolean =
       id, card_id, state, interval_days, ease, stability, difficulty,
       reps, lapses, due_at, last_reviewed_at,
       cards!inner ( front, back )
-    `)
+    `, { count: 'exact' })
         .lte('due_at', new Date().toISOString())
         .order('due_at', { ascending: true })
         .limit(limit)
@@ -24,11 +24,11 @@ async function getQueue(identifier: string, limit: number, isDeviceId: boolean =
 
     // if (!includeNew) q = q.neq('state', 'new')
 
-    const { data, error } = await q
+    const { data, error, count } = await q
 
     if (error) throw new Error(error.message)
 
-    return (data ?? []).map(row => ({
+    const items = (data ?? []).map(row => ({
         saved_card_id: row.id,
         card_id: row.card_id,
         front: (row.cards as any)?.front,
@@ -36,6 +36,9 @@ async function getQueue(identifier: string, limit: number, isDeviceId: boolean =
         state: row.state,
         due_at: row.due_at,
     }))
+    console.log( items );
+
+    return { items, count: count ?? 0 }
 }
 
 async function submit(identifier: string, body: SubmitReviewBody, isDeviceId: boolean = false) {

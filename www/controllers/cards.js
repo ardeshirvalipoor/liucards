@@ -45,7 +45,7 @@ function list(req, res) {
         var _a, _b;
         const parsed = card_1.listCardsQuerySchema.safeParse(req.query);
         if (!parsed.success) {
-            const msg = parsed.error.errors.map(e => e.message).join(', ');
+            const msg = parsed.error.issues.map(e => e.message).join(', ');
             return res.status(400).json({ error: msg });
         }
         const { limit, before, q, device_id, source, due_only } = parsed.data;

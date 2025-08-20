@@ -9,8 +9,6 @@ export const createCardBodySchema = z.object({
 
 export type CreateCardBody = z.infer<typeof createCardBodySchema>;
 
-import { z } from 'zod'
-
 export const listCardsQuerySchema = z.object({
   // common
   limit: z.coerce.number().int().min(1).max(200).default(50),

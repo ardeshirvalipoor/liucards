@@ -32,7 +32,7 @@ async function endSession(identifier: string, body: EndSessionBody, isDeviceId: 
 	} else {
 		owns = session.user_id === identifier;
 	}
-	if (!owns) throw new Error('Forbidden');
+	if (!owns) throw new Error('Forbidden');// cool
 
 	// Update with aggregates
 	const updates = {

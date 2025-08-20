@@ -66,6 +66,7 @@ ldb.set('liucards-cards', []) // Clear local cards after saving
         if (unsubscribe) {
             unsubscribe();
         }
+        emitter.emit('close-study-session')
     }
 
     // Example: cleanup when navigating away
