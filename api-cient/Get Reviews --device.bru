@@ -5,17 +5,14 @@ meta {
 }
 
 get {
-  url: http://localhost:8080/api/v1/reviews/queue?limit=3
+  url: http://localhost:8080/api/v1/reviews/queue?limit=2&device_id=5b64b904-385e-4e62-b4bf-e7c0b8d8aa2e
   body: none
-  auth: bearer
+  auth: none
 }
 
 params:query {
-  limit: 3
-}
-
-auth:bearer {
-  token: {{personal_token}}
+  limit: 2
+  device_id: 5b64b904-385e-4e62-b4bf-e7c0b8d8aa2e
 }
 
 settings {

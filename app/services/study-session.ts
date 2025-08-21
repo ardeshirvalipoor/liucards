@@ -1,4 +1,5 @@
 import services from ".";
+import ldb from "../base/lib/ldb";
 import utils from "../utils";
 
 const API_BASE = '/api/reviews'; // Shared base
@@ -17,7 +18,6 @@ async function start() {
 		"device_id": deviceId,
 	}
 
-
 	const response = await fetch('/api/v1/reviews/sessions/start', {
 		method: 'POST',
 		headers,
@@ -25,12 +25,20 @@ async function start() {
 	});
 	if (!response.ok) throw new Error('Failed to submit review');
 	return response.json(); // { ok: true, next: { ... } }
+		// 	{
+		// "session_id": "beb154e5-bfe1-4cbb-a168-8bb8f8bac92b"
+		// }
 }
 
 
 
 // End session
-async function end(sessionId: string, cardsStudied: number, cardsCorrect: number, totalTimeMs?: number) {
+async function end() {
+	const sessionId = ldb.get('liu-session') || '';
+	if (!sessionId) return;
+	const cardsStudied = ldb.get('liu-cards-studied') || 0;
+	const cardsCorrect = ldb.get('liu-cards-correct') || 0;
+	const totalTimeMs = ldb.get('liu-total-time-ms') || 0;
 	const deviceId = utils.device.getId();
 	const auth = services.supabase.auth.getSession()
 
@@ -45,6 +53,10 @@ async function end(sessionId: string, cardsStudied: number, cardsCorrect: number
 		total_time_ms: totalTimeMs,
 		device_id: deviceId,
 	};
+	ldb.remove('liu-session') // Clear session after ending
+	ldb.remove('liu-cards-studied')
+	ldb.remove('liu-cards-correct')
+	ldb.remove('liu-total-time-ms')
 
 	const response = await fetch('/api/v1/reviews/sessions/end', {
 		method: 'POST',

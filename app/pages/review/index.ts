@@ -1,5 +1,6 @@
 import { Div } from "../../base/components/native/div";
 import { EASE } from "../../base/helpers/style";
+import ldb from "../../base/lib/ldb";
 import { IRouteParams } from "../../base/lib/router";
 import { waitFor } from "../../base/utils/wait";
 import { ReviewCard } from "../../components/card/review-card";
@@ -22,14 +23,34 @@ export const ReviewPage = () => {
         const cardData = await services.reviews.loadMoreCardsToReview()
         console.log({ cardData });
         if (!cardData) {
-            base.append(Div('No cards to review'))
+            const done = Div('\n\n\nNo cards to review, Good job!')
+            done.cssClass({
+                padding: '200px 100px',
+                textAlign: 'center',
+                color: '#888',
+                fontSize: '18px'
+            })
+            body.append(done)
+            body.el.scrollTop = body.el.scrollHeight
             return
         }
         const reviewCard = ReviewCard(cardData)
-        reviewCard.on('iKnow', ()=>{
+        reviewCard.on('iKnow', async () => {
+            const cards_correct = ldb.get('liu-cards-correct') || 0
+            ldb.set('liu-cards-correct', cards_correct + 1)
+            const cards_studied = ldb.get('liu-cards-studied') || 0
+            ldb.set('liu-cards-studied', cards_studied + 1)
+            const total_time_ms = ldb.get('liu-total-time-ms') || 0
+            ldb.set('liu-total-time-ms', total_time_ms + 1000)
+            await services.reviews.submitReview(cardData.saved_card_id, { correct: true, think_time_ms: 1000, duration_ms: 1000, confidence: 2, rating: 2 })
             render()
         })
-        reviewCard.on('dontKnow', () => {
+        reviewCard.on('dontKnow', async () => {
+            services.reviews.submitReview(cardData.saved_card_id, { correct: false, think_time_ms: 2000, duration_ms: 2000, confidence: 1, rating: 1 })
+            const cards_studied = ldb.get('liu-cards-studied') || 0
+            ldb.set('liu-cards-studied', cards_studied + 1)
+            const total_time_ms = ldb.get('liu-total-time-ms') || 0
+            ldb.set('liu-total-time-ms', total_time_ms + 2000)
             render()
         })
 

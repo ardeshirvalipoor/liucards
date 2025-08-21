@@ -1698,6 +1698,7 @@
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        console.log('in load More Cards', _reviewCache);
                         // Check if we have cached reviews
                         if (_reviewCache.length > 0) {
                             return [2 /*return*/, _reviewCache.shift()];
@@ -1715,9 +1716,13 @@
                         return [4 /*yield*/, response.json()];
                     case 2:
                         data = _a.sent();
-                        if (data.items.length === 0) {
-                            return [2 /*return*/, null];
-                        }
+                        if (!(data.items.length === 0)) return [3 /*break*/, 4];
+                        console.log('--- length is 0');
+                        return [4 /*yield*/, services.studySession.end()];
+                    case 3:
+                        _a.sent();
+                        return [2 /*return*/, null];
+                    case 4:
                         _reviewCache.push.apply(_reviewCache, __spreadArray([], __read(data.items.map(function (item) { return ({
                             added: false,
                             card_id: item.card_id,
@@ -1725,25 +1730,45 @@
                             front: item.front,
                             back: item.back
                         }); })), false));
-                        console.log(_reviewCache);
+                        console.log('end of function ', _reviewCache);
                         return [4 /*yield*/, loadMoreCardsToReview()];
-                    case 3: return [2 /*return*/, _a.sent()];
+                    case 5: return [2 /*return*/, _a.sent()];
                 }
             });
         });
     }
     // Submit review
     // Todo: add SubmitReviewBody
+    var endTimeout = null;
     function submitReview(savedCardId_1) {
         return __awaiter$8(this, arguments, void 0, function (savedCardId, options) {
-            var deviceId, auth, body, headers, response;
+            var deviceId, auth, possibleSession, started, body, headers, response;
+            var _this = this;
             if (options === void 0) { options = {}; }
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        if (endTimeout)
+                            clearTimeout(endTimeout);
                         deviceId = utils.device.getId();
                         auth = services.supabase.auth.getSession();
-                        body = __assign({ saved_card_id: savedCardId, client_reviewed_at: new Date().toISOString(), device_id: deviceId }, options);
+                        possibleSession = ldb.get('liu-session');
+                        if (!!possibleSession) return [3 /*break*/, 2];
+                        return [4 /*yield*/, services.studySession.start()];
+                    case 1:
+                        started = _a.sent();
+                        possibleSession = started.session_id;
+                        ldb.set('liu-session', possibleSession);
+                        _a.label = 2;
+                    case 2:
+                        endTimeout = setTimeout(function () { return __awaiter$8(_this, void 0, void 0, function () {
+                            return __generator(this, function (_a) {
+                                console.log('en');
+                                services.studySession.end();
+                                return [2 /*return*/];
+                            });
+                        }); }, 1000 * 60 * 5); // 5 minutes
+                        body = __assign({ saved_card_id: savedCardId, client_reviewed_at: new Date().toISOString(), device_id: deviceId, session_id: possibleSession }, options);
                         headers = {
                             'Content-Type': 'application/json',
                             'Authorization': "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token),
@@ -1753,7 +1778,7 @@
                                 headers: headers,
                                 body: JSON.stringify(body),
                             })];
-                    case 1:
+                    case 3:
                         response = _a.sent();
                         if (!response.ok)
                             throw new Error('Failed to submit review');
@@ -10544,8 +10569,88 @@
         loadMoreCards: loadMoreCards
     };
 
+    function start() {
+        return __awaiter$8(this, void 0, void 0, function () {
+            var deviceId, auth, headers, body, response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        deviceId = utils.device.getId();
+                        auth = services.supabase.auth.getSession();
+                        headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token),
+                        };
+                        body = {
+                            "device_type": "web",
+                            "device_id": deviceId,
+                        };
+                        return [4 /*yield*/, fetch('/api/v1/reviews/sessions/start', {
+                                method: 'POST',
+                                headers: headers,
+                                body: JSON.stringify(body),
+                            })];
+                    case 1:
+                        response = _a.sent();
+                        if (!response.ok)
+                            throw new Error('Failed to submit review');
+                        return [2 /*return*/, response.json()]; // { ok: true, next: { ... } }
+                }
+            });
+        });
+    }
+    // End session
+    function end() {
+        return __awaiter$8(this, void 0, void 0, function () {
+            var sessionId, cardsStudied, cardsCorrect, totalTimeMs, deviceId, auth, headers, body, response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        sessionId = ldb.get('liu-session') || '';
+                        if (!sessionId)
+                            return [2 /*return*/];
+                        cardsStudied = ldb.get('liu-cards-studied') || 0;
+                        cardsCorrect = ldb.get('liu-cards-correct') || 0;
+                        totalTimeMs = ldb.get('liu-total-time-ms') || 0;
+                        deviceId = utils.device.getId();
+                        auth = services.supabase.auth.getSession();
+                        headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token),
+                        };
+                        body = {
+                            session_id: sessionId,
+                            cards_studied: cardsStudied,
+                            cards_correct: cardsCorrect,
+                            total_time_ms: totalTimeMs,
+                            device_id: deviceId,
+                        };
+                        ldb.remove('liu-session'); // Clear session after ending
+                        ldb.remove('liu-cards-studied');
+                        ldb.remove('liu-cards-correct');
+                        ldb.remove('liu-total-time-ms');
+                        return [4 /*yield*/, fetch('/api/v1/reviews/sessions/end', {
+                                method: 'POST',
+                                headers: headers,
+                                body: JSON.stringify(body),
+                            })];
+                    case 1:
+                        response = _a.sent();
+                        if (!response.ok)
+                            throw new Error('Failed to submit review');
+                        return [2 /*return*/, response.json()]; // { ok: true, next: { ... } }
+                }
+            });
+        });
+    }
+    var studySession = {
+        start: start,
+        end: end,
+    };
+
     var services = {
         timeline: timeline,
+        studySession: studySession,
         supabase: supabase$1,
         reviews: reviews,
         cards: cards
@@ -11511,7 +11616,8 @@
         base.cssClass(helpers.styles.PAGE_BASE);
         function render() {
             return __awaiter$8(this, void 0, void 0, function () {
-                var cardData, reviewCard;
+                var cardData, done, reviewCard;
+                var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4 /*yield*/, services.reviews.loadMoreCardsToReview()];
@@ -11519,16 +11625,49 @@
                             cardData = _a.sent();
                             console.log({ cardData: cardData });
                             if (!cardData) {
-                                base.append(Div('No cards to review'));
+                                done = Div('\n\n\nNo cards to review, Good job!');
+                                done.cssClass({
+                                    padding: '200px 100px',
+                                    textAlign: 'center',
+                                    color: '#888',
+                                    fontSize: '18px'
+                                });
+                                body.append(done);
+                                body.el.scrollTop = body.el.scrollHeight;
                                 return [2 /*return*/];
                             }
                             reviewCard = ReviewCard(cardData);
-                            reviewCard.on('iKnow', function () {
-                                render();
-                            });
-                            reviewCard.on('dontKnow', function () {
-                                render();
-                            });
+                            reviewCard.on('iKnow', function () { return __awaiter$8(_this, void 0, void 0, function () {
+                                var cards_correct, cards_studied, total_time_ms;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            cards_correct = ldb.get('liu-cards-correct') || 0;
+                                            ldb.set('liu-cards-correct', cards_correct + 1);
+                                            cards_studied = ldb.get('liu-cards-studied') || 0;
+                                            ldb.set('liu-cards-studied', cards_studied + 1);
+                                            total_time_ms = ldb.get('liu-total-time-ms') || 0;
+                                            ldb.set('liu-total-time-ms', total_time_ms + 1000);
+                                            return [4 /*yield*/, services.reviews.submitReview(cardData.saved_card_id, { correct: true, think_time_ms: 1000, duration_ms: 1000, confidence: 2, rating: 2 })];
+                                        case 1:
+                                            _a.sent();
+                                            render();
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); });
+                            reviewCard.on('dontKnow', function () { return __awaiter$8(_this, void 0, void 0, function () {
+                                var cards_studied, total_time_ms;
+                                return __generator(this, function (_a) {
+                                    services.reviews.submitReview(cardData.saved_card_id, { correct: false, think_time_ms: 2000, duration_ms: 2000, confidence: 1, rating: 1 });
+                                    cards_studied = ldb.get('liu-cards-studied') || 0;
+                                    ldb.set('liu-cards-studied', cards_studied + 1);
+                                    total_time_ms = ldb.get('liu-total-time-ms') || 0;
+                                    ldb.set('liu-total-time-ms', total_time_ms + 2000);
+                                    render();
+                                    return [2 /*return*/];
+                                });
+                            }); });
                             body.append(reviewCard);
                             body.el.scrollTop = body.el.scrollHeight;
                             return [2 /*return*/];
@@ -11703,7 +11842,8 @@
 
     (function () { return __awaiter$8(void 0, void 0, void 0, function () {
         function cleanupPage() {
-            emitter.emit('close-study-session');
+            services.studySession.end();
+            // emitter.emit('close-study-session')
         }
         var cards, cards_1, cards_1_1, card, payload, e_1_1, session, token;
         var e_1, _a;

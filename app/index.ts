@@ -62,11 +62,12 @@ ldb.set('liucards-cards', []) // Clear local cards after saving
     }
 
     function cleanupPage() {
+        services.studySession.end()
         // Stop listening when leaving page or cleaning up
         if (unsubscribe) {
             unsubscribe();
         }
-        emitter.emit('close-study-session')
+        // emitter.emit('close-study-session')
     }
 
     // Example: cleanup when navigating away

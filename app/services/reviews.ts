@@ -1,9 +1,13 @@
 import services from ".";
+import ldb from "../base/lib/ldb";
 import utils from "../utils";
 
 const _reviewCache: any[] = []
 
 async function loadMoreCardsToReview(): Promise<any> {
+
+	console.log('in load More Cards', _reviewCache);
+	
 	// Check if we have cached reviews
 	if (_reviewCache.length > 0) {
 		return _reviewCache.shift()
@@ -43,6 +47,9 @@ async function loadMoreCardsToReview(): Promise<any> {
 	})
 	const data = await response.json()
 	if (data.items.length === 0) {
+		console.log('--- length is 0');
+		
+		await services.studySession.end()
 		return null
 	}
 	_reviewCache.push(...data.items.map((item: any) => ({
@@ -52,7 +59,7 @@ async function loadMoreCardsToReview(): Promise<any> {
 		front: item.front,
 		back: item.back
 	})))
-	console.log(_reviewCache);
+	console.log('end of function ', _reviewCache);
 
 
 	return await loadMoreCardsToReview()
@@ -60,15 +67,27 @@ async function loadMoreCardsToReview(): Promise<any> {
 
 // Submit review
 // Todo: add SubmitReviewBody
-async function submitReview(savedCardId: string, options: Partial<{ correct: boolean, rating: 0 | 1 | 2 | 3, duration_ms: number, confidence: number, think_time_ms: number, session_id: string }> = {}) {
+let endTimeout: NodeJS.Timeout | null = null;
+async function submitReview(savedCardId: string, options: Partial<{ correct: boolean, rating: 0 | 1 | 2 | 3, duration_ms: number, confidence: number, think_time_ms: number }> = {}) {
+	if (endTimeout) clearTimeout(endTimeout);
 	const deviceId = utils.device.getId();
 	const auth = services.supabase.auth.getSession()
 
-
+	let possibleSession = ldb.get('liu-session')
+	if (!possibleSession) {
+		const started = await services.studySession.start()
+		possibleSession = started.session_id
+		ldb.set('liu-session', possibleSession)
+	}
+	endTimeout = setTimeout(async () => {
+		console.log('en');
+		services.studySession.end()
+	}, 1000 * 60 * 5) // 5 minutes
 	const body: any = {
 		saved_card_id: savedCardId,
 		client_reviewed_at: new Date().toISOString(),
 		device_id: deviceId,
+		session_id: possibleSession,
 		...options,
 	};
 
