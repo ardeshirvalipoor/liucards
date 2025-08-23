@@ -11494,7 +11494,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.0.22').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.1.0').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });

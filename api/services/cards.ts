@@ -7,40 +7,44 @@ async function create(params: {
 	deviceId?: string
 	clientCreatedAt?: string
 }) {
-	const { userId, front, back, deviceId, clientCreatedAt } = params
+	const { userId, front, back, deviceId, clientCreatedAt } = params;
 
-	// Insert into cards
+	// Insert into cards (unchanged)
 	const insertPayload: any = {
 		channel_id: null,
 		user_id: userId,
-		device_id: userId ? null : deviceId,
+		device_id: userId ? null : deviceId,  // Null for logged-in, set for anonymous
 		visibility: 'private',
 		front,
 		back,
-	}
-	if (clientCreatedAt) insertPayload.client_created_at = clientCreatedAt
-
+	};
+	if (clientCreatedAt) insertPayload.client_created_at = clientCreatedAt;
 	const { data: card, error: e1 } = await supabaseAdmin
 		.from('cards')
 		.insert(insertPayload)
 		.select('id, content_version, created_at')
-		.single()
+		.single();
+	if (e1) {
+		console.error('Error creating card:', e1);
+		throw new Error(e1.message);
+	}
 
-	if (e1) throw new Error(e1.message)
-
+	// Upsert into saved_cards, with symmetric device_id handling
 	const { error: e2 } = await supabaseAdmin
 		.from('saved_cards')
 		.upsert({
 			user_id: userId,
-			device_id: deviceId,
+			device_id: userId ? null : deviceId,  // Key change: null for logged-in, set for anonymous
 			card_id: card.id,
 			source_kind: 'self',
 			source_version: card.content_version
-		}, { onConflict: 'user_id,card_id' })
+		}, { onConflict: 'user_id,card_id' });
+	if (e2) {
+		console.error('Error saving save-card:', e2);
+		throw new Error(e2.message);
+	}
 
-	if (e2) throw new Error(e2.message)
-
-	return { cardId: card.id }
+	return { cardId: card.id };
 }
 
 async function list(params: {
