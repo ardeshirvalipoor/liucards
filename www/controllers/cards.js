@@ -40,6 +40,28 @@ function post(req, res) {
         }
     });
 }
+function search(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const parse = card_1.searchCardSchema.safeParse(req.body);
+        if (!parse.success) {
+            const msg = parse.error.issues.map(e => e.message).join(', ');
+            return res.status(400).json({ error: msg });
+        }
+        const { q } = parse.data;
+        // const userId = (req as any).user?.id || null
+        // if (!userId && !device_id) {
+        //     return res.status(400).json({ error: 'device_id is required when not logged in' })
+        // }
+        try {
+            const result = yield services_1.default.search.searchSimilarCards(q);
+            return res.json(result); // { cardId }
+        }
+        catch (err) {
+            // Avoid leaking internals
+            return res.status(500).json({ error: err.message || 'Failed to create card' });
+        }
+    });
+}
 function list(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b;
@@ -72,5 +94,6 @@ function list(req, res) {
 }
 exports.default = {
     post,
-    list
+    list,
+    search
 };

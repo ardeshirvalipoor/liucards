@@ -27,3 +27,9 @@ export const listCardsQuerySchema = z.object({
 })
 
 export type ListCardsQuery = z.infer<typeof listCardsQuerySchema>
+
+export const searchCardSchema = z.object({
+  q: z.string().min(1).max(200)
+})
+
+export type SearchCard = z.infer<typeof searchCardSchema>

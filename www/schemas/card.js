@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listCardsQuerySchema = exports.createCardBodySchema = void 0;
+exports.searchCardSchema = exports.listCardsQuerySchema = exports.createCardBodySchema = void 0;
 const zod_1 = require("zod");
 exports.createCardBodySchema = zod_1.z.object({
     front: zod_1.z.string({ error: 'Invalid or missing front format' }).min(1, 'front is required').max(10000),
@@ -21,4 +21,7 @@ exports.listCardsQuerySchema = zod_1.z.object({
         .union([zod_1.z.literal('true'), zod_1.z.literal('false')])
         .optional()
         .transform(v => v === 'true')
+});
+exports.searchCardSchema = zod_1.z.object({
+    q: zod_1.z.string().min(1).max(200)
 });
