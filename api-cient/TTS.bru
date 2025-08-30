@@ -1,0 +1,26 @@
+meta {
+  name: TTS
+  type: http
+  seq: 10
+}
+
+post {
+  url: https://kjwuyqdprfwdrxygmtmm.supabase.co/functions/v1/dynamic-task
+  body: json
+  auth: inherit
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtqd3V5cWRwcmZ3ZHJ4eWdtdG1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1MTU3NTksImV4cCI6MjA2MzA5MTc1OX0.tX4Xp7h5HWHBgVZc4oy6LkFiec__cs15nbKfBwHhFzs
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Functions"
+  }
+}
+
+settings {
+  encodeUrl: false
+}

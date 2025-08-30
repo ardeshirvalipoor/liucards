@@ -9,26 +9,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const card_1 = require("../schemas/card");
 const services_1 = require("../services");
+const card_1 = require("../schemas/card");
 function post(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
+        console.log('in post:', req.body);
         const parse = card_1.createCardBodySchema.safeParse(req.body);
         if (!parse.success) {
+            console.log('parse error:', parse.error);
             const msg = parse.error.issues.map(e => e.message).join(', ');
             return res.status(400).json({ error: msg });
         }
-        const { front, back, device_id, client_created_at } = parse.data;
+        const { front, back, device_id, client_created_at, front_audio_url, back_audio_url } = parse.data;
         const userId = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.id) || null;
         if (!userId && !device_id) {
             return res.status(400).json({ error: 'device_id is required when not logged in' });
         }
+        console.log('calling service');
         try {
             const result = yield services_1.default.cards.create({
                 userId,
                 front,
                 back,
+                front_audio_url,
+                back_audio_url,
                 deviceId: device_id,
                 clientCreatedAt: client_created_at
             });
@@ -40,6 +45,35 @@ function post(req, res) {
         }
     });
 }
+function edit(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const parse = card_1.editCardBodySchema.safeParse(req.body);
+        if (!parse.success) {
+            const msg = parse.error.issues.map(e => e.message).join(', ');
+            return res.status(400).json({ error: msg });
+        }
+        const { front, back, device_id } = parse.data;
+        const userId = ((_a = req.user) === null || _a === void 0 ? void 0 : _a.id) || null;
+        if (!userId && !device_id) {
+            return res.status(400).json({ error: 'device_id is required when not logged in' });
+        }
+        // todo: check Idor
+        try {
+            const result = yield services_1.default.cards.edit({
+                userId,
+                deviceId: device_id,
+                cardId: req.params.id,
+                front,
+                back
+            });
+            return res.json(result); // { cardId, content_version }
+        }
+        catch (err) {
+            return res.status(500).json({ error: err.message || 'Failed to edit card' });
+        }
+    });
+}
 function search(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const parse = card_1.searchCardSchema.safeParse(req.body);
@@ -48,17 +82,13 @@ function search(req, res) {
             return res.status(400).json({ error: msg });
         }
         const { q } = parse.data;
-        // const userId = (req as any).user?.id || null
-        // if (!userId && !device_id) {
-        //     return res.status(400).json({ error: 'device_id is required when not logged in' })
-        // }
         try {
             const result = yield services_1.default.search.searchSimilarCards(q);
             return res.json(result); // { cardId }
         }
         catch (err) {
             // Avoid leaking internals
-            return res.status(500).json({ error: err.message || 'Failed to create card' });
+            return res.status(500).json({ error: err.message || 'Failed to search cards' });
         }
     });
 }
@@ -81,7 +111,6 @@ function list(req, res) {
                 deviceId: device_id,
                 limit,
                 before,
-                q,
                 source,
                 dueOnly: due_only !== null && due_only !== void 0 ? due_only : false
             });
@@ -94,6 +123,7 @@ function list(req, res) {
 }
 exports.default = {
     post,
+    edit,
     list,
     search
 };

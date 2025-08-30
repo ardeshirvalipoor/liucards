@@ -13,7 +13,7 @@ export const Timeline = () => {
 	base.el.addEventListener('scroll', handleScrollStart)
 	base.el.addEventListener('scrollend', handleScrollEnd)
 
-	load()
+	// load()
 
 	async function load() {
 		base.empty()

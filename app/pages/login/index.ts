@@ -1,11 +1,5 @@
-import { Div } from "../../base/components/native/div";
-import { Img } from "../../base/components/native/img";
 import router, { IRouteParams } from "../../base/lib/router";
-import images from "../../configs/images";
 import helpers from "../../helpers";
-import { ActionButton } from "../shared/action-button";
-import { Body } from "../shared/body";
-import { PageHeader } from "../shared/page-header";
 import { Page } from "../shared/page";
 import { Base } from "../../base/components/base";
 
@@ -30,7 +24,7 @@ export const LoginPage = () => {
 
     base.on('enter', ({ from }: IRouteParams) => {
         if (from?.includes('setup-reminder')) {
-            desc.style({ display: 'block' })
+            // desc.style({ display: 'block' })
         }
     })
 

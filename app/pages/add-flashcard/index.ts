@@ -3,6 +3,7 @@ import { EASE } from '../../base/helpers/style'
 import ldb from '../../base/lib/ldb'
 import router, { IRouteParams } from '../../base/lib/router'
 import { waitFor } from '../../base/utils/wait'
+import { AddAudio } from '../../components/add-audio/add-audio'
 import helpers from '../../helpers'
 import services from '../../services'
 import { DButton } from '../shared/d-button'
@@ -21,9 +22,16 @@ export const AddFlashcardPage = () => {
 	question.style({ marginTop: '30px' })
     base.append(question)
 
+	const frontAudio = AddAudio()
+	base.append(frontAudio)
+	question.el.oninput = () => {
+		frontAudio.setText(question.getValue())
+	}
+
 	const hr = Div()
 	hr.cssClass({
 		height: '1px',
+		margin: '20px 0',
 		backgroundColor: '#00000022',
 		width: '100%'
 	})
@@ -31,6 +39,12 @@ export const AddFlashcardPage = () => {
 
 	const answer = DInput('Answer', 'Answer', { type: 'textarea' })
     base.append(answer)
+
+	const backAudio = AddAudio()
+	base.append(backAudio)
+	backAudio.el.oninput = () => {
+		backAudio.setText(answer.getValue())
+	}
 
 	const submit = DButton()
 	submit.cssClass({
@@ -42,18 +56,24 @@ export const AddFlashcardPage = () => {
     base.append(submit)
 
 	submit.el.onclick = async () => {
+		if (!question.getValue() || !answer.getValue()) return
 		submit.style({ opacity: '0.5', pointerEvents: 'none' })
 		submit.text('Saving...')
 		const cardData = {
 			front: question.getValue(),
 			back: answer.getValue(),
+			front_audio_url: frontAudio.getUrl(),
+			back_audio_url: backAudio.getUrl(),
 			device_id: ldb.get('liucards-device-id')
 		}
+		console.log('card data', cardData);
 		await services.cards.save(cardData)
 		question.setValue('')
 		answer.setValue('')
 		submit.style({ opacity: '1', pointerEvents: 'auto' })
 		submit.text('Save')
+		frontAudio.resetUI()
+		backAudio.resetUI()
 		router.back()
 	}
 

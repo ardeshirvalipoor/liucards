@@ -213,7 +213,24 @@ async function afterLoginMerge() {
 	}
 }
 
+async function generateAudio(text: string, lang: string): Promise<string> {
+	if (!text) throw new Error('No text provided for audio generation')
+	console.log('Generating audio for text:', text, lang);
+
+	const { data, error } = await supabase.functions.invoke('dynamic-task', {
+		body:{ text, lang },
+	})
+	if (error) {
+		console.error('Error generating audio:', error)
+		throw error
+	}
+	console.log('Audio generated successfully:', data)
+
+	return data.url;
+}
+
 export default {
 	auth,
-	afterLoginMerge
+	afterLoginMerge,
+	generateAudio
 }

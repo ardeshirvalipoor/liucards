@@ -39,7 +39,7 @@ async function loadMoreCardsToReview(): Promise<any> {
 	*/
 	const device_id = utils.device.getId()
 	const auth = services.supabase.auth.getSession()
-	const url = `/api/v1/reviews/queue?limit=10&device_id=${device_id}`
+	const url = `/api/v1/reviews/queue?limit=100&device_id=${device_id}`
 	const response = await fetch(url, {
 		headers: {
 			Authorization: `Bearer ${auth?.access_token}`
@@ -57,7 +57,11 @@ async function loadMoreCardsToReview(): Promise<any> {
 		card_id: item.card_id,
 		saved_card_id: item.saved_card_id,
 		front: item.front,
-		back: item.back
+		back: item.back,
+		front_audio_url: item.front_audio_url,
+		back_audio_url: item.back_audio_url,
+		userId: item.user_id,
+		deviceId: item.device_id,
 	})))
 	console.log('end of function ', _reviewCache);
 

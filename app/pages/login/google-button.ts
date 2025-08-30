@@ -6,7 +6,7 @@ import images from '../../configs/images'
 
 export const GoogleButton = () => {
     const base = Base()
-    const google = Img(images.ICONS.GOOGLE, { width: 24 })
+    const google = Img(images.icons.flip, { width: 24 })
     const txt = Span('Login using google')
     txt.cssClass({
         marginLeft: '10px',

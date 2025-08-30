@@ -1,8 +1,5 @@
 import { Div } from "../../../base/components/native/div";
-import { EASE, HIDE, SHOW, X } from "../../../base/helpers/style";
 import router from "../../../base/lib/router";
-import clients from "../../../services/clients";
-import { emitter } from "../../../services/emitter";
 import { PlusIcon } from "../../shared/plus-icon";
 import { baseStyle } from "./header.style";
 

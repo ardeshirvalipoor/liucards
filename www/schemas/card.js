@@ -1,12 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchCardSchema = exports.listCardsQuerySchema = exports.createCardBodySchema = void 0;
+exports.searchCardSchema = exports.listCardsQuerySchema = exports.editCardBodySchema = exports.createCardBodySchema = void 0;
 const zod_1 = require("zod");
 exports.createCardBodySchema = zod_1.z.object({
     front: zod_1.z.string({ error: 'Invalid or missing front format' }).min(1, 'front is required').max(10000),
     back: zod_1.z.string({ error: 'Invalid or missing back format' }).min(1, 'back is required').max(10000),
+    front_audio_url: zod_1.z.any().optional(),
+    back_audio_url: zod_1.z.any().optional(),
     device_id: zod_1.z.uuid().optional(), // top-level; stricter, or use z.guid() if you need leniency
     client_created_at: zod_1.z.iso.datetime({ error: 'Invalid or missing client_created_at format' }), // top-level datetime validator
+});
+exports.editCardBodySchema = zod_1.z.object({
+    front: zod_1.z.string({ message: 'Invalid or missing front format' }).min(1, { message: 'front is required' }).max(10000, { message: 'front exceeds maximum length of 10000' }),
+    back: zod_1.z.string({ message: 'Invalid or missing back format' }).min(1, { message: 'back is required' }).max(10000, { message: 'back exceeds maximum length of 10000' }),
+    front_audio_url: zod_1.z.string({ message: 'Invalid front_audio_url format' }).optional().or(zod_1.z.literal('')),
+    back_audio_url: zod_1.z.string({ message: 'Invalid back_audio_url format' }).optional().or(zod_1.z.literal('')),
+    device_id: zod_1.z.uuid({ message: 'Invalid device_id format, must be a UUID' }).optional(),
 });
 exports.listCardsQuerySchema = zod_1.z.object({
     // common

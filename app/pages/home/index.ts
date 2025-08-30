@@ -2,6 +2,9 @@ import { Page } from '../shared/page'
 import { HomeHeader } from './shared/header'
 import { Div } from '../../base/components/native/div'
 import { Timeline } from './shared/timeline/timeline'
+import { IRouteInitParams, IRouteParams } from '../../base/lib/router'
+import helpers from '../../helpers'
+import { waitFor } from '../../base/utils/wait'
 
 export const HomePage = () => {
 
@@ -14,9 +17,26 @@ export const HomePage = () => {
     const timeline = Timeline()
     base.append(timeline)
 
-    base.on('enter', () => {
-        timeline.load()
-    })
+    base.on('enter', (p: IRouteParams) => {
 
-    return base
+    })
+    async function enter({ query, from, to, data, params }: IRouteParams) {
+        await waitFor(helpers.styles.PAGE_TRANSITION_DURATION)
+        base.style(helpers.styles.PAGE_ENTER)
+
+        if (from?.startsWith('/flashcards/edit')) {
+            console.log('>>> returning');
+        }
+            // return
+        // } else {
+
+            timeline.load()
+        // }
+    }
+    return Object.assign(base, {
+        enter
+
+
+
+    })
 }

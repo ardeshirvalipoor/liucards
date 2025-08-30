@@ -12,3 +12,8 @@ export const baseStyle: CS = {
     backfaceVisibility: 'hidden',
     webkitBackfaceVisibility: 'hidden',
 }
+
+export const playButtonStyle: CS = {
+    position: 'absolute',
+    bottom: '24px',
+}

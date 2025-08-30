@@ -12,16 +12,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const supabase_1 = require("../configs/supabase");
 function create(params) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { userId, front, back, deviceId, clientCreatedAt } = params;
+        const { userId, front, back, deviceId, clientCreatedAt, front_audio_url, back_audio_url } = params;
         // Insert into cards (unchanged)
         const insertPayload = {
             channel_id: null,
             user_id: userId,
             device_id: userId ? null : deviceId, // Null for logged-in, set for anonymous
             visibility: 'private',
+            front_audio_url,
+            back_audio_url,
             front,
             back,
         };
+        console.log('in service:', insertPayload);
         if (clientCreatedAt)
             insertPayload.client_created_at = clientCreatedAt;
         const { data: card, error: e1 } = yield supabase_1.supabaseAdmin
@@ -50,92 +53,105 @@ function create(params) {
         return { cardId: card.id };
     });
 }
+function edit(params) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { userId, deviceId, cardId, front, back } = params;
+        // Verify ownership
+        const { data: card, error: checkError } = yield supabase_1.supabaseAdmin
+            .from('cards')
+            .select('id, user_id, device_id, content_version')
+            .eq('id', cardId)
+            .single();
+        if (checkError || !card) {
+            console.error('Error fetching card for edit:', checkError);
+            throw new Error((checkError === null || checkError === void 0 ? void 0 : checkError.message) || 'Card not found');
+        }
+        if (userId && card.user_id !== userId) {
+            throw new Error('Unauthorized: Card does not belong to user');
+        }
+        if (!userId && card.device_id !== deviceId) {
+            throw new Error('Unauthorized: Card does not belong to device');
+        }
+        // Update card content and increment content_version
+        const { data: updatedCard, error: updateError } = yield supabase_1.supabaseAdmin
+            .from('cards')
+            .update({
+            front,
+            back,
+            content_version: card.content_version + 1, // Increment directly using fetched value
+            updated_at: new Date().toISOString()
+        })
+            .eq('id', cardId)
+            .select('id, content_version')
+            .single();
+        if (updateError) {
+            console.error('Error updating card:', updateError);
+            throw new Error(updateError.message);
+        }
+        // Update saved_cards source_version
+        const { error: savedError } = yield supabase_1.supabaseAdmin
+            .from('saved_cards')
+            .update({
+            source_version: updatedCard.content_version,
+            updated_at: new Date().toISOString()
+        })
+            .eq('card_id', cardId)
+            .eq(userId ? 'user_id' : 'device_id', userId || deviceId);
+        if (savedError) {
+            console.error('Error updating saved_cards:', savedError);
+            throw new Error(savedError.message);
+        }
+        return { cardId: updatedCard.id, content_version: updatedCard.content_version };
+    });
+}
 function list(params) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { userId, deviceId, limit, before, q, source = 'all', dueOnly = false } = params;
+        const { userId, deviceId, limit, before, source = 'all', dueOnly = false } = params;
+        // Require deviceId if userId is null
+        if (!userId && !deviceId) {
+            throw new Error('device_id is required when not logged in');
+        }
+        // Query saved_cards with user_id or device_id
+        let select = supabase_1.supabaseAdmin
+            .from('saved_cards')
+            .select(`
+			id,
+			card_id,
+			state,
+			interval_days,
+			ease,
+			stability,
+			difficulty,
+			reps,
+			lapses,
+			due_at,
+			last_reviewed_at,
+			updated_at,
+			source_kind,
+			source_version,
+			user_id,
+			device_id,
+			cards!inner ( id, front, back, created_at, updated_at, content_version, front_audio_url, back_audio_url )
+		`);
         if (userId) {
-            // Logged-in: saved_cards join cards
-            let select = supabase_1.supabaseAdmin
-                .from('saved_cards')
-                .select(`
-          id,
-          card_id,
-          state,
-          interval_days,
-          ease,
-          stability,
-          difficulty,
-          reps,
-          lapses,
-          due_at,
-          last_reviewed_at,
-          updated_at,
-          source_kind,
-          source_version,
-          cards!inner ( id, front, back, created_at, updated_at )
-        `)
-                .eq('user_id', userId)
-                .order('updated_at', { ascending: false })
-                .limit(limit);
-            if (before)
-                select = select.lt('updated_at', before);
-            if (dueOnly)
-                select = select.lte('due_at', new Date().toISOString());
-            if (source !== 'all')
-                select = select.eq('source_kind', source);
-            // naive search on front/back
-            if (q) {
-                // PostgREST can't OR across joined columns easily, so filter after fetch if needed.
-                const { data, error } = yield select;
-                if (error)
-                    throw new Error(error.message);
-                const rows = (data !== null && data !== void 0 ? data : []).filter(r => {
-                    var _a, _b, _c, _d;
-                    const f = (_b = (_a = r.cards.front) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== null && _b !== void 0 ? _b : '';
-                    const b = (_d = (_c = r.cards.back) === null || _c === void 0 ? void 0 : _c.toLowerCase()) !== null && _d !== void 0 ? _d : '';
-                    const needle = q.toLowerCase();
-                    return f.includes(needle) || b.includes(needle);
-                });
-                return rows.map(mapLoggedInRow);
-            }
-            const { data, error } = yield select;
-            if (error)
-                throw new Error(error.message);
-            return (data !== null && data !== void 0 ? data : []).map(mapLoggedInRow);
+            select = select.eq('user_id', userId);
         }
         else {
-            // Anonymous: require deviceId
-            if (!deviceId)
-                throw new Error('device_id is required when not logged in');
-            let qCards = supabase_1.supabaseAdmin
-                .from('cards')
-                .select('id, front, back, created_at, updated_at')
-                .eq('device_id', deviceId)
-                .is('user_id', null)
-                .is('channel_id', null)
-                .eq('visibility', 'private')
-                .order('created_at', { ascending: false })
-                .limit(limit);
-            if (before)
-                qCards = qCards.lt('created_at', before);
-            if (q)
-                qCards = qCards.ilike('front', `%${q}%`); // search only front to keep it simple
-            const { data, error } = yield qCards;
-            if (error)
-                throw new Error(error.message);
-            return (data !== null && data !== void 0 ? data : []).map(c => ({
-                // anonymous payload shape
-                saved_card_id: null,
-                card_id: c.id,
-                front: c.front,
-                back: c.back,
-                state: 'new',
-                due_at: null,
-                created_at: c.created_at,
-                updated_at: c.updated_at,
-                source_kind: 'self'
-            }));
+            select = select.eq('device_id', deviceId);
         }
+        select = select
+            .order('updated_at', { ascending: false })
+            .limit(limit);
+        if (before)
+            select = select.lt('updated_at', before);
+        if (dueOnly)
+            select = select.lte('due_at', new Date().toISOString());
+        if (source !== 'all')
+            select = select.eq('source_kind', source);
+        const { data, error } = yield select;
+        if (error)
+            throw new Error(`Failed to fetch cards: ${error.message}`);
+        return (data !== null && data !== void 0 ? data : []).map(mapLoggedInRow);
     });
 }
 function mapLoggedInRow(row) {
@@ -144,13 +160,18 @@ function mapLoggedInRow(row) {
         card_id: row.card_id,
         front: row.cards.front,
         back: row.cards.back,
+        front_audio_url: row.cards.front_audio_url,
+        back_audio_url: row.cards.back_audio_url,
         state: row.state,
         due_at: row.due_at,
         updated_at: row.updated_at,
-        source_kind: row.source_kind
+        source_kind: row.source_kind,
+        user_id: row.user_id,
+        device_id: row.device_id
     };
 }
 exports.default = {
     create,
+    edit,
     list
 };

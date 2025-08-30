@@ -3,6 +3,7 @@ import { Div } from './base/components/native/div'
 import router from './base/lib/router'
 import { AboutPage } from './pages/about'
 import { AddFlashcardPage } from './pages/add-flashcard'
+import { EditFlashcardPage } from './pages/edit-flashcard'
 import { HomePage } from './pages/home'
 import { LoginPage } from './pages/login'
 import { MenuPage } from './pages/menu'
@@ -23,6 +24,7 @@ const routes = {
     '/about': AboutPage,
     '/login': LoginPage,
     '/add-flashcard': AddFlashcardPage,
+    '/flashcards/edit/:id': EditFlashcardPage,
     '/review': ReviewPage
 }
 

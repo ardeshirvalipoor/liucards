@@ -1,26 +1,32 @@
 import type { Request, Response } from 'express'
-import { createCardBodySchema, listCardsQuerySchema, searchCardSchema } from '../schemas/card'
 import services from '../services'
+import { createCardBodySchema, editCardBodySchema, listCardsQuerySchema, searchCardSchema } from '../schemas/card'
 
 
 async function post(req: Request, res: Response) {
+    console.log('in post:', req.body);
+
     const parse = createCardBodySchema.safeParse(req.body)
     if (!parse.success) {
+        console.log('parse error:', parse.error);
         const msg = parse.error.issues.map(e => e.message).join(', ')
         return res.status(400).json({ error: msg })
     }
-    const { front, back, device_id, client_created_at } = parse.data
+    const { front, back, device_id, client_created_at, front_audio_url, back_audio_url } = parse.data
 
     const userId = (req as any).user?.id || null
     if (!userId && !device_id) {
         return res.status(400).json({ error: 'device_id is required when not logged in' })
     }
+    console.log('calling service');
 
     try {
         const result = await services.cards.create({
             userId,
             front,
             back,
+            front_audio_url,
+            back_audio_url,
             deviceId: device_id,
             clientCreatedAt: client_created_at
         })
@@ -28,6 +34,34 @@ async function post(req: Request, res: Response) {
     } catch (err: any) {
         // Avoid leaking internals
         return res.status(500).json({ error: err.message || 'Failed to create card' })
+    }
+}
+
+async function edit(req: Request, res: Response) {
+    const parse = editCardBodySchema.safeParse(req.body)
+    if (!parse.success) {
+        const msg = parse.error.issues.map(e => e.message).join(', ')
+        return res.status(400).json({ error: msg })
+    }
+    const { front, back, device_id } = parse.data
+
+    const userId = (req as any).user?.id || null
+    if (!userId && !device_id) {
+        return res.status(400).json({ error: 'device_id is required when not logged in' })
+    }
+
+// todo: check Idor
+    try {
+        const result = await services.cards.edit({
+            userId,
+            deviceId: device_id,
+            cardId: req.params.id,
+            front,
+            back
+        })
+        return res.json(result) // { cardId, content_version }
+    } catch (err: any) {
+        return res.status(500).json({ error: err.message || 'Failed to edit card' })
     }
 }
 
@@ -39,20 +73,14 @@ async function search(req: Request, res: Response) {
     }
     const { q } = parse.data
 
-    // const userId = (req as any).user?.id || null
-    // if (!userId && !device_id) {
-    //     return res.status(400).json({ error: 'device_id is required when not logged in' })
-    // }
-
     try {
         const result = await services.search.searchSimilarCards(q)
         return res.json(result) // { cardId }
     } catch (err: any) {
         // Avoid leaking internals
-        return res.status(500).json({ error: err.message || 'Failed to create card' })
+        return res.status(500).json({ error: err.message || 'Failed to search cards' })
     }
 }
-
 
 async function list(req: Request, res: Response) {
     const parsed = listCardsQuerySchema.safeParse(req.query)
@@ -73,7 +101,6 @@ async function list(req: Request, res: Response) {
             deviceId: device_id,
             limit,
             before,
-            q,
             source,
             dueOnly: due_only ?? false
         })
@@ -85,6 +112,7 @@ async function list(req: Request, res: Response) {
 
 export default {
     post,
+    edit,
     list,
     search
 }

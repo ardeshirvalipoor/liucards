@@ -4,9 +4,9 @@ import { EASE, S } from "../../base/helpers/style"
 import { PASSIVE } from '../../base/utils/passive-support'
 import configs from '../../configs'
 
-export const DButton = () => {
+export const DButton = (title: string = '') => {
     const base = Button()
-
+    if (title) base.text(title)
     withRipple(base, { bg: 'white' })
     base.cssClass({
         justifyContent: 'center',
@@ -16,8 +16,8 @@ export const DButton = () => {
         borderRadius: '24px',
         textAlign: 'center',
         userSelect: 'none',
-        fontSize: '18px',
-        boxShadow: '#0000002b 0px 3px 5px',
+        fontSize: '16px',
+        backgroundColor:'#606060ff',
         display: 'flex',
         alignItems: 'center',
         transition: 'all 0.16s',

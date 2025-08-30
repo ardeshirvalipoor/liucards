@@ -29,18 +29,6 @@
         return __assign.apply(this, arguments);
     };
 
-    function __rest$2(s, e) {
-        var t = {};
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-            t[p] = s[p];
-        if (s != null && typeof Object.getOwnPropertySymbols === "function")
-            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                    t[p[i]] = s[p[i]];
-            }
-        return t;
-    }
-
     function __awaiter$8(thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -126,7 +114,8 @@
     var images = {
         icons: {
             like: '/images/like.svg',
-            flip: '/images/flip.svg?v=2'
+            flip: '/images/flip.svg?v=2',
+            play: '/images/play.svg?v=2'
         }
     };
 
@@ -137,7 +126,7 @@
         sizes: sizes};
 
     var _a;
-    var baseStyle$9 = (_a = {
+    var baseStyle$b = (_a = {
             margin: '0',
             transition: 'all .16s',
             overflow: 'hidden',
@@ -173,9 +162,6 @@
         return function () { return (id++).toString(); };
     };
     var nextId = idGenerator();
-    var shortUUID = function () {
-        return (new Date().valueOf().toString(36).slice(2) + Math.random().toString(36).slice(2)).slice(-12);
-    };
 
     var createEmitter = function () {
         var _listeners = {};
@@ -403,7 +389,7 @@
             }
         };
     }
-    function get$4(key) {
+    function get$2(key) {
         var raw = String(localStorage.getItem(key) || '');
         try {
             return JSON.parse(raw);
@@ -412,17 +398,17 @@
             return raw;
         }
     }
-    function remove$3(key) {
+    function remove$1(key) {
         localStorage.removeItem(key);
     }
     function clear() {
         localStorage.clear();
     }
     var ldb = {
-        get: get$4,
+        get: get$2,
         set: save$1,
         save: save$1,
-        remove: remove$3,
+        remove: remove$1,
         clear: clear
     };
 
@@ -877,6 +863,146 @@
             } }));
     };
 
+    var Img = function (path, options) {
+        if (path === void 0) { path = ''; }
+        if (options === void 0) { options = {}; }
+        var base = Base('img');
+        var opts = __assign({ width: 'auto' }, options);
+        if (options.alt)
+            base.el.setAttribute('alt', options.alt);
+        base.style({
+            width: opts.width + 'px',
+            height: opts.height ? (opts.height + 'px') : 'auto'
+        });
+        base.el.src = path || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPs6OuoBwAFYwIfBAd8EQAAAABJRU5ErkJggg==';
+        return base;
+    };
+
+    var supportsPassive = false;
+    try {
+        var opts = Object.defineProperty({}, 'passive', {
+            get: function () {
+                supportsPassive = true;
+            }
+        });
+        var nil = function () { };
+        window.addEventListener('error', nil, opts);
+        window.removeEventListener('error', nil, opts);
+    }
+    catch (e) {
+        console.log({ e: e });
+    }
+    var PASSIVE = supportsPassive ? { passive: true } : false;
+
+    var Ghost = function (options) {
+        if (options === void 0) { options = {}; }
+        var base = Div();
+        var opts = __assign({ opacity: .15, bg: '#00000055', bgDark: '#ffffff', size: 48 }, options);
+        base.cssClass(__assign(__assign(__assign(__assign({}, HIDE), WH(opts.size)), ROUND), { backgroundColor: opts.bg, position: 'absolute', willChange: 'transform,opacity', transformOrigin: 'center', pointerEvents: 'none', '&:dark': {
+                backgroundColor: opts.bgDark || opts.bg,
+            } }));
+        var touchStartTime = 0;
+        return Object.assign(base, {
+            activate: function (x, y) {
+                touchStartTime = new Date().valueOf();
+                base.style(__assign(__assign(__assign({}, EASE(0)), S(0)), { 
+                    // animation: 'ghost 2s',
+                    opacity: '1', left: x - opts.size / 2 + 'px', top: y - opts.size / 2 + 'px' }));
+                base.style(__assign(__assign({ transition: 'all 1s cubic-bezier(0, 1, 0, 1)' }, S(3.5)), { opacity: '.3' }), 10);
+                base.style(__assign(__assign({ transition: 'all 2s cubic-bezier(0, 1, 0, 1)' }, S(3.5)), { opacity: '0' }), 500);
+            },
+            deactivate: function () {
+                base.style(__assign({}, S(2)));
+                base.style(__assign(__assign(__assign({}, EASE(.36)), HIDE), S(3)), 100 - new Date().valueOf() + touchStartTime);
+            }
+        });
+    };
+    var withRipple = function (c, options) {
+        if (options === void 0) { options = {}; }
+        var ghost = Ghost(options);
+        c.el.addEventListener('touchstart', function (e) {
+            var _a = c.el.getBoundingClientRect(), x = _a.x, y = _a.y;
+            var _b = e.touches[0], pageX = _b.pageX, pageY = _b.pageY;
+            ghost.activate(pageX - x, pageY - y);
+            // setTimeout(() => {
+            //     ghost.deactivate()
+            // }, 10);
+            // c.style(opts.activeStyle)
+        }, PASSIVE);
+        c.el.addEventListener('touchend', function () {
+            // ghost.deactivate()
+            // c.style(opts.normalStyle)
+        }, PASSIVE);
+        c.el.addEventListener('touchcancel', function () {
+            // ghost.deactivate()
+            // c.style(opts.normalStyle)
+        }, PASSIVE);
+        c.append(ghost);
+        return c;
+    };
+
+    var Button = function () {
+        var base = Base('button');
+        base.cssClass({
+            cursor: 'pointer',
+        });
+        base.el.onclick = function () { return setTimeout(function () { return base.emit('click'); }, 100); };
+        return Object.assign(base, {
+            focus: function () {
+                base.el.focus();
+            },
+            blur: function () {
+                base.el.blur();
+            },
+            disable: function () {
+                base.el.setAttribute('disabled', 'true');
+            },
+            enable: function () {
+                base.el.removeAttribute('disabled');
+            },
+            text: function (text) {
+                if (text === void 0) { text = 'Button'; }
+                base.el.innerHTML = text;
+            }
+        });
+    };
+
+    var DButton = function (title) {
+        if (title === void 0) { title = ''; }
+        var base = Button();
+        if (title)
+            base.text(title);
+        withRipple(base, { bg: 'white' });
+        base.cssClass({
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            color: 'white',
+            borderRadius: '24px',
+            textAlign: 'center',
+            userSelect: 'none',
+            fontSize: '16px',
+            backgroundColor: '#606060ff',
+            display: 'flex',
+            alignItems: 'center',
+            transition: 'all 0.16s',
+            border: 'none',
+            '&:active': {
+                filter: 'brightness(0.95) contrast(1.1)',
+                boxShadow: '0 0px 0px rgba(0, 0, 0, 0.1)',
+                transform: 'scale(0.99)',
+            },
+            '&:hover': {
+                opacity: 0.8
+            },
+            '&:disabled': {
+                opacity: 0.7,
+                filter: 'saturate(0.1)',
+            }
+        });
+        return base;
+    };
+
     function getId() {
         var key = 'liucards-device-id';
         var id = localStorage.getItem(key);
@@ -894,9 +1020,9 @@
         device: device
     };
 
-    function save(params) {
+    function update(params) {
         return __awaiter$8(this, void 0, void 0, function () {
-            var accessToken, session, front, back, payload;
+            var accessToken, session, front, back, id, payload;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -908,10 +1034,56 @@
                             accessToken = session.access_token;
                             console.log('Token:', accessToken);
                         }
-                        front = params.front, back = params.back;
+                        front = params.front, back = params.back, id = params.id;
+                        console.log('EDIT PARAMS:', params);
                         payload = {
                             front: front,
                             back: back,
+                            device_id: utils.device.getId(),
+                        };
+                        console.log('EDIT PAYLOAD:', payload);
+                        return [4 /*yield*/, fetch("/api/v1/cards/".concat(id), {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Authorization: "Bearer ".concat(accessToken) // <- token here
+                                },
+                                body: JSON.stringify(payload)
+                            })
+                            // const cards = ldb.get('liucards-cards') || []
+                            // cards.push({front, back, 'liucards-device-id': localStorage.getItem('liucards-device-id'), added: true})
+                            // ldb.set('liucards-cards', cards)
+                        ];
+                    case 2:
+                        _a.sent();
+                        // const cards = ldb.get('liucards-cards') || []
+                        // cards.push({front, back, 'liucards-device-id': localStorage.getItem('liucards-device-id'), added: true})
+                        // ldb.set('liucards-cards', cards)
+                        return [2 /*return*/, true];
+                }
+            });
+        });
+    }
+    function save(params) {
+        return __awaiter$8(this, void 0, void 0, function () {
+            var accessToken, session, front, back, front_audio_url, back_audio_url, payload;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        accessToken = null;
+                        return [4 /*yield*/, services.supabase.auth.getSession()];
+                    case 1:
+                        session = _a.sent();
+                        if (session) {
+                            accessToken = session.access_token;
+                            console.log('Token:', accessToken);
+                        }
+                        front = params.front, back = params.back, front_audio_url = params.front_audio_url, back_audio_url = params.back_audio_url;
+                        payload = {
+                            front: front,
+                            back: back,
+                            front_audio_url: front_audio_url,
+                            back_audio_url: back_audio_url,
                             client_created_at: new Date().toISOString(),
                             device_id: utils.device.getId(),
                         };
@@ -938,195 +1110,9 @@
         });
     }
     var cards = {
-        save: save
+        save: save,
+        update: update
     };
-
-    var get$3 = function (url, options) {
-        if (options === void 0) { options = {}; }
-        var opts = __assign({ method: 'GET', type: 'application/json', cache: 0 }, options);
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest;
-            xhr.withCredentials = true;
-            xhr.open(opts.method, url, true);
-            xhr.setRequestHeader('Content-Type', opts.type);
-            xhr.setRequestHeader('Authorization', 'Bearer ' + opts.auth);
-            xhr.onreadystatechange = function () {
-                var _a;
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    resolve({
-                        status: xhr.status,
-                        data: opts.type == 'application/json' ? JSON.parse(xhr.response) : xhr.response,
-                        error: (_a = xhr.response) === null || _a === void 0 ? void 0 : _a.error
-                    });
-                }
-            };
-            xhr.onerror = reject;
-            xhr.send();
-            emitter$1.once('cancel-xhr', function (_url) {
-                if (['*', url].includes(_url)) {
-                    xhr.abort();
-                }
-            });
-        });
-    };
-    var post$1 = function (url, body, _headers) {
-        if (_headers === void 0) { _headers = {}; }
-        var headers = __assign({ 'Content-Type': 'application/json', cache: 0 }, _headers);
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest;
-            xhr.open('POST', url, true);
-            xhr.withCredentials = true;
-            // xhr.responseType = 'text';
-            Object.keys(headers).map(function (key) {
-                xhr.setRequestHeader(key, headers[key]);
-            }); // Todo: fix it
-            // xhr.setRequestHeader("Accept", "application/json");
-            // xhr.setRequestHeader("Content-Type", "application/json");
-            if (headers.auth)
-                xhr.setRequestHeader('Authorization', 'Bearer ' + headers.auth);
-            xhr.send(headers['Content-Type'] === 'application/json' ? JSON.stringify(body) : body);
-            // xhr.send(body) // ? JSON.stringify(body) : null)
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    try {
-                        return resolve(JSON.parse(xhr.responseText));
-                    }
-                    catch (error) {
-                        console.error(error);
-                        return reject(xhr.response);
-                    }
-                }
-            };
-        });
-    };
-    var put$1 = function (url, body, _headers) {
-        if (_headers === void 0) { _headers = {}; }
-        var headers = __assign({ type: 'application/json', cache: 0 }, _headers);
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest;
-            xhr.open('PUT', url, true);
-            xhr.withCredentials = true;
-            Object.keys(headers).map(function (key) {
-                xhr.setRequestHeader(key, headers[key]);
-            }); // Todo: fix it
-            xhr.setRequestHeader('Content-Type', headers.type);
-            xhr.setRequestHeader('Authorization', 'Bearer ' + headers.auth);
-            // xhr.send(headers['Content-Type'] === 'application/json' ? JSON.stringify(body) : body)
-            xhr.send(JSON.stringify(body));
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    try {
-                        return resolve(__assign({ status: xhr.status }, JSON.parse(xhr.response)));
-                    }
-                    catch (error) {
-                        // console.warn(error)
-                        return resolve({
-                            status: xhr.status,
-                            data: xhr.response
-                        });
-                    }
-                }
-            };
-        });
-    };
-    var patch = function (url, body, _headers) {
-        if (_headers === void 0) { _headers = {}; }
-        var headers = __assign({ type: 'application/json', cache: 0 }, _headers);
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.withCredentials = true;
-            xhr.open('PATCH', url, true);
-            Object.keys(headers).map(function (key) {
-                xhr.setRequestHeader(key, headers[key]);
-            });
-            xhr.setRequestHeader('Content-Type', headers.type);
-            xhr.setRequestHeader('Authorization', 'Bearer ' + headers.auth);
-            xhr.send(JSON.stringify(body));
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    try {
-                        return resolve(__assign({ status: xhr.status }, JSON.parse(xhr.response)));
-                    }
-                    catch (error) {
-                        return resolve({
-                            status: xhr.status,
-                            data: xhr.response,
-                        });
-                    }
-                }
-            };
-        });
-    };
-    var remove$2 = function (url, _headers) {
-        if (_headers === void 0) { _headers = {}; }
-        var headers = __assign({ type: 'application/json', cache: 0 }, _headers);
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest;
-            xhr.withCredentials = true;
-            xhr.open('DELETE', url, true);
-            Object.keys(headers).map(function (key) {
-                xhr.setRequestHeader(key, headers[key]);
-            }); // Todo: fix it
-            xhr.setRequestHeader('Content-Type', headers.type);
-            xhr.setRequestHeader('Authorization', 'Bearer ' + headers.auth);
-            // xhr.send(headers['Content-Type'] === 'application/json' ? JSON.stringify(body) : body)
-            xhr.send();
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == XMLHttpRequest.DONE) {
-                    try {
-                        return resolve(__assign({ status: xhr.status }, JSON.parse(xhr.response)));
-                    }
-                    catch (error) {
-                        // console.warn(error)
-                        return resolve({
-                            status: xhr.status,
-                            data: xhr.response
-                        });
-                    }
-                }
-            };
-        });
-    };
-    var uploader = function (file, url) {
-        return {
-            start: function () {
-                var _this = this;
-                var xhr = new XMLHttpRequest;
-                xhr.open('POST', url);
-                var name = typeof file === 'string' ? 'profile.jpg' : file.name;
-                var type = typeof file === 'string' ? 'image/jpg' : file.type || 'image/jpg';
-                xhr.setRequestHeader('File-Type', type);
-                xhr.setRequestHeader('File-Name', encodeURIComponent(name) || 'test.jpg');
-                xhr.onload = function () { return xhr.status === 200 || xhr.status === 201 ? _this.done(xhr) : _this.failed(xhr); };
-                xhr.onerror = function (e) { return _this.failed(e); };
-                xhr.upload.onprogress = function (e) { return _this.onProgress(e); };
-                xhr.upload.onerror = function (e) { return console.log('xhr.upload.onerror', e); };
-                xhr.upload.onload = function (e) { return console.log('xhr.upload.load', e); };
-                xhr.upload.onloadend = function (e) { return console.log('xhr.upload.onloadend doesn\'t mean it\'s =done. it\'s just uploaded', e); };
-                xhr.upload.onloadstart = function (e) { return console.log('xhr.upload.onloadstart', e); };
-                xhr.send(file);
-            },
-            onProgress: function (value) { },
-            done: function (response) { },
-            failed: function (response) { }
-        };
-    };
-    var XHR = {
-        get: get$3,
-        post: post$1,
-        delete: remove$2,
-        put: put$1, // Todo make merge
-        uploader: uploader,
-        patch: patch
-    };
-
-    function createClient$1(_a) {
-        var _b;
-        var user_id = _a.user_id, temp_id = _a.temp_id, created_at = _a.created_at, updated_at = _a.updated_at, synced = _a.synced, rest = __rest$2(_a, ["user_id", "temp_id", "created_at", "updated_at", "synced"]);
-        var now = new Date().toISOString();
-        var fallbackUserId = ((_b = ldb.get('user')) === null || _b === void 0 ? void 0 : _b.id) || '';
-        return __assign(__assign({}, rest), { user_id: user_id !== null && user_id !== void 0 ? user_id : fallbackUserId, temp_id: temp_id !== null && temp_id !== void 0 ? temp_id : shortUUID(), created_at: created_at !== null && created_at !== void 0 ? created_at : now, updated_at: updated_at !== null && updated_at !== void 0 ? updated_at : now, synced: synced !== null && synced !== void 0 ? synced : 0, notifications_enabled: 0 });
-    }
 
     var dbReadyPromise = new Promise(function (resolve, reject) {
         emitter$1.on('db-ready', function () {
@@ -1614,82 +1600,7 @@
             }
         });
     }); };
-    var db$1 = __assign(__assign({}, db), { init: init });
-
-    function all(page) {
-        return __awaiter$8(this, void 0, void 0, function () {
-            var all;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, db$1.all('clients')];
-                    case 1:
-                        all = _a.sent();
-                        return [2 /*return*/, all.filter(function (c) { return !c.deleted; })]; // todo move to idb
-                }
-            });
-        });
-    }
-    function get$2(remoteId_1) {
-        return __awaiter$8(this, arguments, void 0, function (remoteId, tempId) {
-            var _a, foundById;
-            if (tempId === void 0) { tempId = remoteId; }
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0: return [4 /*yield*/, db$1.find('clients', { index: 'id', value: remoteId })];
-                    case 1:
-                        _a = __read.apply(void 0, [_b.sent(), 1]), foundById = _a[0];
-                        if (foundById)
-                            return [2 /*return*/, foundById];
-                        return [2 /*return*/, db$1.byId('clients', tempId)];
-                }
-            });
-        });
-    }
-    function add(data) {
-        var client = createClient$1(data);
-        var added = db$1.save('clients', client);
-        return added;
-    }
-    function update(remoteId, tempId, data) {
-        return __awaiter$8(this, void 0, void 0, function () {
-            var existing;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, get$2(remoteId, tempId)];
-                    case 1:
-                        existing = _a.sent();
-                        if (!existing)
-                            throw new Error('Client not found');
-                        return [2 /*return*/, db$1.update('clients', existing.temp_id, data)];
-                }
-            });
-        });
-    }
-    function count() {
-        return db$1.count('clients');
-    }
-    function remove$1(localOrServerId) {
-        return __awaiter$8(this, void 0, void 0, function () {
-            var existing;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, get$2(localOrServerId)];
-                    case 1:
-                        existing = _a.sent();
-                        if (!existing)
-                            throw new Error('Client not found');
-                        return [2 /*return*/, update(existing.id, existing.temp_id, __assign(__assign({}, existing), { deleted: 1 }))];
-                }
-            });
-        });
-    }
-    function isJoinedTheBot(remoteId) {
-        return XHR.get("/api/clients/".concat(remoteId, "/joined"));
-    }
-    function unSynced() {
-        return db$1.find('clients', { index: 'synced', value: 0 });
-    }
-    __assign({ all: all, get: get$2, add: add, update: update, count: count, remove: remove$1, isJoinedTheBot: isJoinedTheBot, unSynced: unSynced }, createEmitter());
+    __assign(__assign({}, db), { init: init });
 
     var _reviewCache = [];
     function loadMoreCardsToReview() {
@@ -1705,7 +1616,7 @@
                         }
                         device_id = utils.device.getId();
                         auth = services.supabase.auth.getSession();
-                        url = "/api/v1/reviews/queue?limit=10&device_id=".concat(device_id);
+                        url = "/api/v1/reviews/queue?limit=100&device_id=".concat(device_id);
                         return [4 /*yield*/, fetch(url, {
                                 headers: {
                                     Authorization: "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token)
@@ -1728,7 +1639,11 @@
                             card_id: item.card_id,
                             saved_card_id: item.saved_card_id,
                             front: item.front,
-                            back: item.back
+                            back: item.back,
+                            front_audio_url: item.front_audio_url,
+                            back_audio_url: item.back_audio_url,
+                            userId: item.user_id,
+                            deviceId: item.device_id,
                         }); })), false));
                         console.log('end of function ', _reviewCache);
                         return [4 /*yield*/, loadMoreCardsToReview()];
@@ -10523,9 +10438,34 @@
             });
         });
     }
+    function generateAudio(text, lang) {
+        return __awaiter$8(this, void 0, void 0, function () {
+            var _a, data, error;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!text)
+                            throw new Error('No text provided for audio generation');
+                        console.log('Generating audio for text:', text, lang);
+                        return [4 /*yield*/, supabase.functions.invoke('dynamic-task', {
+                                body: { text: text, lang: lang },
+                            })];
+                    case 1:
+                        _a = _b.sent(), data = _a.data, error = _a.error;
+                        if (error) {
+                            console.error('Error generating audio:', error);
+                            throw error;
+                        }
+                        console.log('Audio generated successfully:', data);
+                        return [2 /*return*/, data.url];
+                }
+            });
+        });
+    }
     var supabase$1 = {
         auth: auth,
-        afterLoginMerge: afterLoginMerge
+        afterLoginMerge: afterLoginMerge,
+        generateAudio: generateAudio
     };
 
     function getRecomendations() {
@@ -10543,7 +10483,7 @@
                     case 0:
                         device_id = utils.device.getId();
                         auth = services.supabase.auth.getSession();
-                        url = "/api/v1/cards?limit=10&device_id=".concat(device_id);
+                        url = "/api/v1/cards?limit=100&device_id=".concat(device_id);
                         return [4 /*yield*/, fetch(url, {
                                 headers: {
                                     Authorization: "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token)
@@ -10558,7 +10498,11 @@
                                 added: false,
                                 id: item.card_id,
                                 front: item.front,
-                                back: item.back
+                                back: item.back,
+                                userId: item.user_id,
+                                front_audio_url: item.front_audio_url,
+                                back_audio_url: item.back_audio_url,
+                                deviceId: item.device_id,
                             }); })];
                 }
             });
@@ -10656,126 +10600,146 @@
         cards: cards
     };
 
-    var supportsPassive = false;
-    try {
-        var opts = Object.defineProperty({}, 'passive', {
-            get: function () {
-                supportsPassive = true;
-            }
-        });
-        var nil = function () { };
-        window.addEventListener('error', nil, opts);
-        window.removeEventListener('error', nil, opts);
-    }
-    catch (e) {
-        console.log({ e: e });
-    }
-    var PASSIVE = supportsPassive ? { passive: true } : false;
+    var Option = function (value, text) {
+        var base = Base('option');
+        base.el.value = value;
+        base.el.innerHTML = text;
+        return base;
+    };
 
-    var Ghost = function (options) {
-        if (options === void 0) { options = {}; }
-        var base = Div();
-        var opts = __assign({ opacity: .15, bg: '#00000055', bgDark: '#ffffff', size: 48 }, options);
-        base.cssClass(__assign(__assign(__assign(__assign({}, HIDE), WH(opts.size)), ROUND), { backgroundColor: opts.bg, position: 'absolute', willChange: 'transform,opacity', transformOrigin: 'center', pointerEvents: 'none', '&:dark': {
-                backgroundColor: opts.bgDark || opts.bg,
-            } }));
-        var touchStartTime = 0;
+    var Select = function (options) {
+        if (options === void 0) { options = []; }
+        var base = Base('select');
+        options.forEach(function (_a) {
+            var value = _a.value, text = _a.text;
+            var option = Option(value, text);
+            base.append(option);
+        });
         return Object.assign(base, {
-            activate: function (x, y) {
-                touchStartTime = new Date().valueOf();
-                base.style(__assign(__assign(__assign({}, EASE(0)), S(0)), { 
-                    // animation: 'ghost 2s',
-                    opacity: '1', left: x - opts.size / 2 + 'px', top: y - opts.size / 2 + 'px' }));
-                base.style(__assign(__assign({ transition: 'all 1s cubic-bezier(0, 1, 0, 1)' }, S(3.5)), { opacity: '.3' }), 10);
-                base.style(__assign(__assign({ transition: 'all 2s cubic-bezier(0, 1, 0, 1)' }, S(3.5)), { opacity: '0' }), 500);
+            add: function (value, text) {
+                base.append(Option(value, text));
             },
-            deactivate: function () {
-                base.style(__assign({}, S(2)));
-                base.style(__assign(__assign(__assign({}, EASE(.36)), HIDE), S(3)), 100 - new Date().valueOf() + touchStartTime);
-            }
-        });
-    };
-    var withRipple = function (c, options) {
-        if (options === void 0) { options = {}; }
-        var ghost = Ghost(options);
-        c.el.addEventListener('touchstart', function (e) {
-            var _a = c.el.getBoundingClientRect(), x = _a.x, y = _a.y;
-            var _b = e.touches[0], pageX = _b.pageX, pageY = _b.pageY;
-            ghost.activate(pageX - x, pageY - y);
-            // setTimeout(() => {
-            //     ghost.deactivate()
-            // }, 10);
-            // c.style(opts.activeStyle)
-        }, PASSIVE);
-        c.el.addEventListener('touchend', function () {
-            // ghost.deactivate()
-            // c.style(opts.normalStyle)
-        }, PASSIVE);
-        c.el.addEventListener('touchcancel', function () {
-            // ghost.deactivate()
-            // c.style(opts.normalStyle)
-        }, PASSIVE);
-        c.append(ghost);
-        return c;
-    };
-
-    var Button = function () {
-        var base = Base('button');
-        base.cssClass({
-            cursor: 'pointer',
-        });
-        base.el.onclick = function () { return setTimeout(function () { return base.emit('click'); }, 100); };
-        return Object.assign(base, {
-            focus: function () {
-                base.el.focus();
-            },
-            blur: function () {
-                base.el.blur();
-            },
-            disable: function () {
-                base.el.setAttribute('disabled', 'true');
-            },
-            enable: function () {
-                base.el.removeAttribute('disabled');
-            },
-            text: function (text) {
-                if (text === void 0) { text = 'Button'; }
-                base.el.innerHTML = text;
-            }
+            getValue: function () { var _a; return (_a = base.el.selectedOptions[0]) === null || _a === void 0 ? void 0 : _a.value; },
         });
     };
 
-    var DButton = function () {
-        var base = Button();
-        withRipple(base, { bg: 'white' });
-        base.cssClass({
-            justifyContent: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-            color: 'white',
-            borderRadius: '24px',
-            textAlign: 'center',
-            userSelect: 'none',
-            fontSize: '18px',
-            boxShadow: '#0000002b 0px 3px 5px',
-            display: 'flex',
-            alignItems: 'center',
-            transition: 'all 0.16s',
-            border: 'none',
-            '&:active': {
-                filter: 'brightness(0.95) contrast(1.1)',
-                boxShadow: '0 0px 0px rgba(0, 0, 0, 0.1)',
-                transform: 'scale(0.99)',
-            },
-            '&:hover': {
-                opacity: 0.8
-            },
-            '&:disabled': {
-                opacity: 0.7,
-                filter: 'saturate(0.1)',
-            }
+    var LANGUAGES = [
+        { code: 'en-US', name: 'English (US)', nativeName: 'English' },
+        { code: 'nl-NL', name: 'Dutch', nativeName: 'Nederlands' },
+        { code: 'de-DE', name: 'German', nativeName: 'Deutsch' },
+        { code: 'fr-FR', name: 'French', nativeName: 'Français' },
+        { code: 'es-ES', name: 'Spanish', nativeName: 'Español' },
+        { code: 'it-IT', name: 'Italian', nativeName: 'Italiano' },
+        { code: 'hi-IN', name: 'Hindi', nativeName: 'हिन्दी' },
+        { code: 'zh-CN', name: 'Chinese (Simplified)', nativeName: '简体中文' },
+        { code: 'ar-SA', name: 'Arabic', nativeName: 'العربية' },
+        { code: 'pt-BR', name: 'Portuguese (Brazil)', nativeName: 'Português' },
+        { code: 'ru-RU', name: 'Russian', nativeName: 'Русский' },
+        { code: 'ja-JP', name: 'Japanese', nativeName: '日本語' },
+        { code: 'ko-KR', name: 'Korean', nativeName: '한국어' },
+        { code: 'tr-TR', name: 'Turkish', nativeName: 'Türkçe' },
+        { code: 'pl-PL', name: 'Polish', nativeName: 'Polski' },
+        { code: 'sv-SE', name: 'Swedish', nativeName: 'Svenska' },
+        { code: 'vi-VN', name: 'Vietnamese', nativeName: 'Tiếng Việt' },
+        { code: 'th-TH', name: 'Thai', nativeName: 'ไทย' },
+        { code: 'id-ID', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
+        { code: 'cs-CZ', name: 'Czech', nativeName: 'Čeština' }
+    ];
+    var LanguageSelect = function () {
+        var base = Select();
+        LANGUAGES.forEach(function (lang) {
+            var option = Option(lang.code, lang.name);
+            base.append(option);
         });
         return base;
+    };
+
+    var baseStyle$a = {
+        position: 'relative',
+    };
+    var playButtonStyle$1 = {};
+
+    var AddAudio = function () {
+        var base = Div();
+        base.cssClass(baseStyle$a);
+        var audio = null;
+        var text = '';
+        var generate = DButton('Generate Audio');
+        generate.el.onclick = function () {
+            generate.style({ display: 'none' });
+            action.style({ display: 'flex' });
+        };
+        base.append(generate);
+        var action = Div();
+        action.cssClass({ display: 'none', alignItems: 'center', gap: '10px' });
+        base.append(action);
+        var langs = LanguageSelect();
+        action.append(langs);
+        var go = DButton('Go');
+        action.append(go);
+        var play = Img(images.icons.play, { width: 24, height: 24 });
+        play.cssClass(playButtonStyle$1);
+        play.style({ display: 'none' });
+        base.append(play);
+        go.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
+            var selectedLang, final;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        action.style({ pointerEvents: 'none', opacity: '0.5' });
+                        selectedLang = langs.getValue();
+                        return [4 /*yield*/, services.supabase.generateAudio(text, selectedLang)];
+                    case 1:
+                        final = _a.sent();
+                        console.log('audio saved:', final);
+                        audio = final;
+                        play.el.onclick = playAudio.bind(null, final);
+                        action.style({ display: 'none' });
+                        play.style({ display: 'block' });
+                        return [2 /*return*/];
+                }
+            });
+        }); };
+        function playAudio(url) {
+            return __awaiter$8(this, void 0, void 0, function () {
+                var a, error_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            console.log('Playing audio:', url);
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            a = new Audio(url);
+                            a.currentTime = 0;
+                            return [4 /*yield*/, a.play()];
+                        case 2:
+                            _a.sent();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            error_1 = _a.sent();
+                            console.error('Failed to play audio:', error_1);
+                            throw error_1;
+                        case 4: return [2 /*return*/];
+                    }
+                });
+            });
+        }
+        return Object.assign(base, {
+            getUrl: function () {
+                return audio;
+            },
+            setText: function (newText) {
+                text = newText;
+            },
+            resetUI: function () {
+                generate.style({ display: 'flex' });
+                action.style({ display: 'none' });
+                play.style({ display: 'none' });
+                audio = null;
+                text = '';
+            }
+        });
     };
 
     var Input = function (placeholder, type, options) {
@@ -11008,25 +10972,36 @@
         });
     };
 
-    var baseStyle$8 = __assign(__assign({}, helpers.styles.PAGE_BASE), { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', overflowY: 'auto' });
+    var baseStyle$9 = __assign(__assign({}, helpers.styles.PAGE_BASE), { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', overflowY: 'auto' });
 
     var AddFlashcardPage = function () {
         var base = Div();
-        base.cssClass(baseStyle$8);
+        base.cssClass(baseStyle$9);
         var title = PageHeader('Add Flashcard');
         base.append(title);
         var question = DInput('Question', 'Question', { type: 'textarea' });
         question.style({ marginTop: '30px' });
         base.append(question);
+        var frontAudio = AddAudio();
+        base.append(frontAudio);
+        question.el.oninput = function () {
+            frontAudio.setText(question.getValue());
+        };
         var hr = Div();
         hr.cssClass({
             height: '1px',
+            margin: '20px 0',
             backgroundColor: '#00000022',
             width: '100%'
         });
         base.append(hr);
         var answer = DInput('Answer', 'Answer', { type: 'textarea' });
         base.append(answer);
+        var backAudio = AddAudio();
+        base.append(backAudio);
+        backAudio.el.oninput = function () {
+            backAudio.setText(answer.getValue());
+        };
         var submit = DButton();
         submit.cssClass({
             padding: '10px 20px',
@@ -11040,13 +11015,18 @@
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        if (!question.getValue() || !answer.getValue())
+                            return [2 /*return*/];
                         submit.style({ opacity: '0.5', pointerEvents: 'none' });
                         submit.text('Saving...');
                         cardData = {
                             front: question.getValue(),
                             back: answer.getValue(),
+                            front_audio_url: frontAudio.getUrl(),
+                            back_audio_url: backAudio.getUrl(),
                             device_id: ldb.get('liucards-device-id')
                         };
+                        console.log('card data', cardData);
                         return [4 /*yield*/, services.cards.save(cardData)];
                     case 1:
                         _a.sent();
@@ -11054,6 +11034,8 @@
                         answer.setValue('');
                         submit.style({ opacity: '1', pointerEvents: 'auto' });
                         submit.text('Save');
+                        frontAudio.resetUI();
+                        backAudio.resetUI();
                         router.back();
                         return [2 /*return*/];
                 }
@@ -11075,6 +11057,104 @@
                             case 0: return [4 /*yield*/, waitFor(200)];
                             case 1:
                                 _d.sent();
+                                setTimeout(function () {
+                                    question.focus();
+                                }, 500);
+                                // if (from === '/menu') {
+                                //     base.style({ ...helpers.styles.PAGE_EXIT, ...EASE(0) })
+                                // }
+                                base.style(__assign(__assign({}, helpers.styles.PAGE_ENTER), EASE(.16)), 50);
+                                return [2 /*return*/];
+                        }
+                    });
+                });
+            } }));
+    };
+
+    var baseStyle$8 = __assign(__assign({}, helpers.styles.PAGE_BASE), { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', overflowY: 'auto' });
+
+    var EditFlashcardPage = function () {
+        var id = '';
+        var base = Div();
+        base.cssClass(baseStyle$8);
+        var title = PageHeader('Edit Flashcard');
+        base.append(title);
+        var question = DInput('Question', 'Question', { type: 'textarea' });
+        question.style({ marginTop: '30px' });
+        base.append(question);
+        var hr = Div();
+        hr.cssClass({
+            height: '1px',
+            backgroundColor: '#00000022',
+            width: '100%'
+        });
+        base.append(hr);
+        var answer = DInput('Answer', 'Answer', { type: 'textarea' });
+        base.append(answer);
+        var submit = DButton();
+        submit.cssClass({
+            padding: '10px 20px',
+            backgroundColor: '#0bbba4',
+            marginTop: '20px'
+        });
+        submit.text('Update');
+        base.append(submit);
+        submit.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
+            var cardData, locale;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        submit.style({ opacity: '0.5', pointerEvents: 'none' });
+                        submit.text('Saving...');
+                        cardData = {
+                            front: question.getValue(),
+                            back: answer.getValue(),
+                            device_id: ldb.get('liucards-device-id'),
+                            id: id
+                        };
+                        locale = ldb.get("liucards-card-".concat(id));
+                        if (locale) {
+                            ldb.set("liucards-card-".concat(id), { front: question.getValue(), back: answer.getValue() });
+                        }
+                        return [4 /*yield*/, services.cards.update(cardData)];
+                    case 1:
+                        _a.sent();
+                        router.goto('/'); // temp
+                        question.setValue('');
+                        answer.setValue('');
+                        submit.style({ opacity: '1', pointerEvents: 'auto' });
+                        submit.text('Update');
+                        return [2 /*return*/];
+                }
+            });
+        }); };
+        return Object.assign(base, __assign(__assign({}, base), { exit: function (_a) {
+                return __awaiter$8(this, arguments, void 0, function (_b) {
+                    _b.to;
+                    return __generator(this, function (_d) {
+                        base.style(helpers.styles.PAGE_EXIT);
+                        return [2 /*return*/];
+                    });
+                });
+            }, enter: function (_a) {
+                return __awaiter$8(this, arguments, void 0, function (_b) {
+                    var card;
+                    _b.from; var _d = _b.params, params = _d === void 0 ? { cardId: '' } : _d;
+                    return __generator(this, function (_e) {
+                        switch (_e.label) {
+                            case 0:
+                                // temp solution:
+                                console.log('edit enter', params);
+                                id = params.id;
+                                card = ldb.get("liucards-card-".concat(params.id));
+                                console.log('edit enter', card);
+                                if (card) {
+                                    question.setValue(card.front);
+                                    answer.setValue(card.back);
+                                }
+                                return [4 /*yield*/, waitFor(200)];
+                            case 1:
+                                _e.sent();
                                 setTimeout(function () {
                                     question.focus();
                                 }, 500);
@@ -11220,11 +11300,49 @@
         backfaceVisibility: 'hidden',
         webkitBackfaceVisibility: 'hidden',
     };
+    var playButtonStyle = {
+        position: 'absolute',
+        bottom: '24px',
+    };
 
-    var CardFace = function (text) {
-        var card = Div(text);
-        card.cssClass(baseStyle$5);
-        return card;
+    //   private audioCache: Map<string, HTMLAudioElement> = new Map();
+    var CardFace = function (text, audio) {
+        var base = Div();
+        base.cssClass(baseStyle$5);
+        var content = Div(text);
+        base.append(content);
+        if (audio) {
+            console.log('Y', audio);
+            var play = withRipple(Img(images.icons.play, { width: 24, height: 24 }));
+            play.el.onclick = playAudio.bind(null, audio);
+            play.cssClass(playButtonStyle);
+            base.append(play);
+        }
+        function playAudio(url) {
+            return __awaiter$8(this, void 0, void 0, function () {
+                var audio_1, error_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            audio_1 = new Audio(url);
+                            // this.audioCache.set(url, audio);
+                            // Reset to beginning and play
+                            audio_1.currentTime = 0;
+                            return [4 /*yield*/, audio_1.play()];
+                        case 1:
+                            _a.sent();
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_1 = _a.sent();
+                            console.error('Failed to play audio:', error_1);
+                            throw error_1;
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        }
+        return base;
     };
 
     var baseStyle$4 = __assign(__assign({ width: '100%', height: '100%', perspective: '1000px', webkitTapHighlightColor: 'transparent', userSelect: 'none', touchAction: 'manipulation', cursor: 'pointer', paddingTop: '40px' }, CENTER), { flexDirection: 'column' });
@@ -11234,21 +11352,6 @@
         height: '70%',
         transformStyle: 'preserve-3d',
         transition: 'transform 250ms ease',
-    };
-
-    var Img = function (path, options) {
-        if (path === void 0) { path = ''; }
-        if (options === void 0) { options = {}; }
-        var base = Base('img');
-        var opts = __assign({ width: 'auto' }, options);
-        if (options.alt)
-            base.el.setAttribute('alt', options.alt);
-        base.style({
-            width: opts.width + 'px',
-            height: opts.height ? (opts.height + 'px') : 'auto'
-        });
-        base.el.src = path || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPs6OuoBwAFYwIfBAd8EQAAAABJRU5ErkJggg==';
-        return base;
     };
 
     var baseStyle$3 = {
@@ -11296,6 +11399,15 @@
     };
 
     var Card = function (_card) {
+        var _a, _b;
+        console.log(_card);
+        var localData = ldb.get("liucards-card-".concat(_card.id));
+        if (localData) {
+            console.log('-- loading locale', localData);
+            _card = __assign(__assign({}, _card), localData);
+            console.log('new card', _card);
+            ldb.remove("liucards-card-".concat(_card.id));
+        }
         // Todo: add an interface
         var isFlipped = false;
         var base = Div();
@@ -11303,9 +11415,9 @@
         var inner = Div();
         inner.cssClass(innerStyle);
         base.append(inner);
-        var front = CardFace(_card.front);
+        var front = CardFace(_card.front, _card.front_audio_url);
         inner.append(front);
-        var back = CardFace(_card.back);
+        var back = CardFace(_card.back, _card.back_audio_url);
         back.cssClass({ transform: 'rotateY(180deg)', backgroundColor: '#d4e8e9' });
         inner.append(back);
         var flip = Flip();
@@ -11313,6 +11425,17 @@
         base.append(flip);
         Like(_card.added);
         // base.append(like)
+        var loggedInUser = (_b = (_a = supabase$1.auth.getSession()) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
+        if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
+            var edit = Div('✏️');
+            edit.cssClass({ marginTop: '30px', filter: 'saturate(0)' });
+            base.append(edit);
+            edit.el.onclick = function () {
+                location.href = "/flashcards/edit/".concat(_card.id);
+                ldb.set("liucards-card-".concat(_card.id), _card);
+            };
+            // Show delete button
+        }
         // inner.el.addEventListener('touchstart', handleTouchStart)
         // inner.el.addEventListener('touchend', handleTouchEnd)
         function handleFlip() {
@@ -11359,7 +11482,7 @@
         base.cssClass(baseStyle);
         base.el.addEventListener('scroll', handleScrollStart);
         base.el.addEventListener('scrollend', handleScrollEnd);
-        load();
+        // load()
         function load() {
             return __awaiter$8(this, void 0, void 0, function () {
                 var localCards, cards;
@@ -11397,10 +11520,31 @@
         base.append(header);
         var timeline = Timeline();
         base.append(timeline);
-        base.on('enter', function () {
-            timeline.load();
+        base.on('enter', function (p) {
         });
-        return base;
+        function enter(_a) {
+            return __awaiter$8(this, arguments, void 0, function (_b) {
+                _b.query; var from = _b.from; _b.to; _b.data; _b.params;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0: return [4 /*yield*/, waitFor(helpers.styles.PAGE_TRANSITION_DURATION)];
+                        case 1:
+                            _c.sent();
+                            base.style(helpers.styles.PAGE_ENTER);
+                            if (from === null || from === void 0 ? void 0 : from.startsWith('/flashcards/edit')) {
+                                console.log('>>> returning');
+                            }
+                            // return
+                            // } else {
+                            timeline.load();
+                            return [2 /*return*/];
+                    }
+                });
+            });
+        }
+        return Object.assign(base, {
+            enter: enter
+        });
     };
 
     var LoginPage = function () {
@@ -11423,9 +11567,7 @@
         }
         base.on('enter', function (_a) {
             var from = _a.from;
-            if (from === null || from === void 0 ? void 0 : from.includes('setup-reminder')) {
-                desc.style({ display: 'block' });
-            }
+            if (from === null || from === void 0 ? void 0 : from.includes('setup-reminder')) ;
         });
         return Object.assign(base, { exit: exit });
     };
@@ -11494,7 +11636,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.1.0').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.3.0').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });
@@ -11816,13 +11958,14 @@
     var menuIcon = MenuIcon();
     var backIcon = BackIcon();
     app.append(menuIcon, backIcon, view);
-    app.cssClass(baseStyle$9);
+    app.cssClass(baseStyle$b);
     var routes = {
         '/': HomePage,
         '/menu': MenuPage,
         '/about': AboutPage,
         '/login': LoginPage,
         '/add-flashcard': AddFlashcardPage,
+        '/flashcards/edit/:id': EditFlashcardPage,
         '/review': ReviewPage
     };
     router.init({ routes: routes, view: view });

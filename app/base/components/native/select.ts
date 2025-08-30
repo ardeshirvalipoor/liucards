@@ -12,7 +12,8 @@ export const Select = (options: { value: string, text: string }[] = []) => {
     return Object.assign(base, {
         add: (value: any, text: string) => {
             base.append(Option(value, text))
-        }
+        },
+        getValue: () => base.el.selectedOptions[0]?.value,
     })
 
 }

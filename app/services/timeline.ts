@@ -40,7 +40,7 @@ async function loadMoreCards() {
     */
     const device_id = utils.device.getId()
     const auth = services.supabase.auth.getSession()
-    const url = `/api/v1/cards?limit=10&device_id=${device_id}`
+    const url = `/api/v1/cards?limit=100&device_id=${device_id}`
     const response = await fetch(url, {
         headers: {
             Authorization: `Bearer ${auth?.access_token}`
@@ -51,7 +51,11 @@ async function loadMoreCards() {
         added: false,
         id: item.card_id,
         front: item.front,
-        back: item.back
+        back: item.back,
+        userId: item.user_id,
+        front_audio_url: item.front_audio_url,
+        back_audio_url: item.back_audio_url,
+        deviceId: item.device_id,
     }))
 }
 

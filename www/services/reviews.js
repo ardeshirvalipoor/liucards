@@ -20,7 +20,7 @@ function getQueue(identifier_1, limit_1) {
             .select(`
       id, card_id, state, interval_days, ease, stability, difficulty,
       reps, lapses, due_at, last_reviewed_at,
-      cards!inner ( front, back )
+      cards!inner ( front, back, front_audio_url, back_audio_url )
     `, { count: 'exact' })
             .lte('due_at', new Date().toISOString())
             .order('due_at', { ascending: true })
@@ -36,12 +36,14 @@ function getQueue(identifier_1, limit_1) {
         if (error)
             throw new Error(error.message);
         const items = (data !== null && data !== void 0 ? data : []).map(row => {
-            var _a, _b;
+            var _a, _b, _c, _d;
             return ({
                 saved_card_id: row.id,
                 card_id: row.card_id,
                 front: (_a = row.cards) === null || _a === void 0 ? void 0 : _a.front,
                 back: (_b = row.cards) === null || _b === void 0 ? void 0 : _b.back,
+                front_audio_url: (_c = row.cards) === null || _c === void 0 ? void 0 : _c.front_audio_url,
+                back_audio_url: (_d = row.cards) === null || _d === void 0 ? void 0 : _d.back_audio_url,
                 state: row.state,
                 due_at: row.due_at,
             });

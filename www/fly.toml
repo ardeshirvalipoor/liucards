@@ -5,7 +5,7 @@
 
 app = 'liucards'
 primary_region = 'ams'
-
+DEBUG="*"
 
 [build]
 

@@ -10,7 +10,7 @@ async function getQueue(identifier: string, limit: number, isDeviceId: boolean =
         .select(`
       id, card_id, state, interval_days, ease, stability, difficulty,
       reps, lapses, due_at, last_reviewed_at,
-      cards!inner ( front, back )
+      cards!inner ( front, back, front_audio_url, back_audio_url )
     `, { count: 'exact' })
         .lte('due_at', new Date().toISOString())
         .order('due_at', { ascending: true })
@@ -33,6 +33,8 @@ async function getQueue(identifier: string, limit: number, isDeviceId: boolean =
         card_id: row.card_id,
         front: (row.cards as any)?.front,
         back: (row.cards as any)?.back,
+        front_audio_url: (row.cards as any)?.front_audio_url,
+        back_audio_url: (row.cards as any)?.back_audio_url,
         state: row.state,
         due_at: row.due_at,
     }))
