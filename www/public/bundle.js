@@ -115,7 +115,10 @@
         icons: {
             like: '/images/like.svg',
             flip: '/images/flip.svg?v=2',
-            play: '/images/play.svg?v=2'
+            play: '/images/play.svg?v=2',
+            pause: '/images/pause.svg?v=2',
+            pen: '/images/pen.svg?v=2',
+            music: '/images/music.svg?v=2'
         }
     };
 
@@ -126,7 +129,7 @@
         sizes: sizes};
 
     var _a;
-    var baseStyle$b = (_a = {
+    var baseStyle$c = (_a = {
             margin: '0',
             transition: 'all .16s',
             overflow: 'hidden',
@@ -863,21 +866,6 @@
             } }));
     };
 
-    var Img = function (path, options) {
-        if (path === void 0) { path = ''; }
-        if (options === void 0) { options = {}; }
-        var base = Base('img');
-        var opts = __assign({ width: 'auto' }, options);
-        if (options.alt)
-            base.el.setAttribute('alt', options.alt);
-        base.style({
-            width: opts.width + 'px',
-            height: opts.height ? (opts.height + 'px') : 'auto'
-        });
-        base.el.src = path || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPs6OuoBwAFYwIfBAd8EQAAAABJRU5ErkJggg==';
-        return base;
-    };
-
     var supportsPassive = false;
     try {
         var opts = Object.defineProperty({}, 'passive', {
@@ -939,6 +927,21 @@
         }, PASSIVE);
         c.append(ghost);
         return c;
+    };
+
+    var Img = function (path, options) {
+        if (path === void 0) { path = ''; }
+        if (options === void 0) { options = {}; }
+        var base = Base('img');
+        var opts = __assign({ width: 'auto' }, options);
+        if (options.alt)
+            base.el.setAttribute('alt', options.alt);
+        base.style({
+            width: opts.width + 'px',
+            height: opts.height ? (opts.height + 'px') : 'auto'
+        });
+        base.el.src = path || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPs6OuoBwAFYwIfBAd8EQAAAABJRU5ErkJggg==';
+        return base;
     };
 
     var Button = function () {
@@ -10600,6 +10603,99 @@
         cards: cards
     };
 
+    var baseStyle$b = {
+        position: 'relative',
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%'
+    };
+    var playStyle = {
+        position: 'absolute',
+        top: '8px',
+        left: '8px',
+        transition: 'transform 0.3s ease',
+        backfaceVisibility: 'hidden'
+    };
+    var pauseStyle = __assign(__assign({}, playStyle), { top: '10px', transform: 'rotateY(180deg)' });
+
+    // todo: check if cache needed
+    // private audioCache: Map<string, HTMLAudioElement> = new Map();
+    // let audio = this.audioCache.get(url);
+    // if (!audio) {
+    //     audio = new Audio(url);
+    //     this.audioCache.set(url, audio);
+    // }
+    var AudioPlay = function (audio) {
+        var _audio = audio;
+        var base = Div();
+        withRipple(base, { bg: '#ccc' });
+        base.cssClass(baseStyle$b);
+        var play = Img(images.icons.play, { width: 24, height: 24 });
+        play.cssClass(playStyle);
+        play.el.onclick = playAudio;
+        base.append(play);
+        var pause = Img(images.icons.pause, { width: 20, height: 20 });
+        pause.cssClass(pauseStyle);
+        pause.el.onclick = pauseAudio;
+        base.append(pause);
+        function playAudio() {
+            return __awaiter$8(this, void 0, void 0, function () {
+                var audio_1, error_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            if (!_audio)
+                                return [2 /*return*/];
+                            audio_1 = new Audio(_audio);
+                            audio_1.currentTime = 0;
+                            return [4 /*yield*/, audio_1.play()];
+                        case 1:
+                            _a.sent();
+                            play.style({ transform: 'rotateY(180deg)' });
+                            pause.style({ transform: 'rotateY(0deg)' });
+                            return [3 /*break*/, 3];
+                        case 2:
+                            error_1 = _a.sent();
+                            console.error('Failed to play audio:', error_1);
+                            throw error_1;
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        }
+        function pauseAudio() {
+            return __awaiter$8(this, void 0, void 0, function () {
+                var audio_2;
+                return __generator(this, function (_a) {
+                    try {
+                        if (!_audio)
+                            return [2 /*return*/];
+                        audio_2 = new Audio(_audio);
+                        audio_2.pause();
+                        play.style({ transform: 'rotateY(0deg)' });
+                        pause.style({ transform: 'rotateY(180deg)' });
+                    }
+                    catch (error) {
+                        console.error('Failed to pause audio:', error);
+                        throw error;
+                    }
+                    return [2 /*return*/];
+                });
+            });
+        }
+        return Object.assign(base, {
+            setAudio: function (audio) {
+                _audio = audio;
+            },
+            reset: function () {
+                play.style({ transform: 'rotateY(180deg)' });
+                pause.style({ transform: 'rotateY(180deg)' });
+                _audio = undefined;
+            }
+        });
+    };
+
     var Option = function (value, text) {
         var base = Base('option');
         base.el.value = value;
@@ -10657,28 +10753,33 @@
     var baseStyle$a = {
         position: 'relative',
     };
-    var playButtonStyle$1 = {};
+    var generateStyle = {
+        position: 'relative'
+    };
 
     var AddAudio = function () {
         var base = Div();
         base.cssClass(baseStyle$a);
         var audio = null;
         var text = '';
-        var generate = DButton('Generate Audio');
+        var generate = withRipple(Div());
+        generate.append(Img(images.icons.music, { width: 24, height: 24 }));
+        generate.cssClass(generateStyle);
         generate.el.onclick = function () {
+            if (!text)
+                return;
             generate.style({ display: 'none' });
             action.style({ display: 'flex' });
         };
         base.append(generate);
         var action = Div();
-        action.cssClass({ display: 'none', alignItems: 'center', gap: '10px' });
+        action.cssClass({ display: 'none', alignItems: 'center', gap: '10px', marginBottom: '8px' });
         base.append(action);
         var langs = LanguageSelect();
         action.append(langs);
         var go = DButton('Go');
         action.append(go);
-        var play = Img(images.icons.play, { width: 24, height: 24 });
-        play.cssClass(playButtonStyle$1);
+        var play = AudioPlay();
         play.style({ display: 'none' });
         base.append(play);
         go.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
@@ -10693,38 +10794,13 @@
                         final = _a.sent();
                         console.log('audio saved:', final);
                         audio = final;
-                        play.el.onclick = playAudio.bind(null, final);
+                        play.setAudio(final);
                         action.style({ display: 'none' });
                         play.style({ display: 'block' });
                         return [2 /*return*/];
                 }
             });
         }); };
-        function playAudio(url) {
-            return __awaiter$8(this, void 0, void 0, function () {
-                var a, error_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            console.log('Playing audio:', url);
-                            _a.label = 1;
-                        case 1:
-                            _a.trys.push([1, 3, , 4]);
-                            a = new Audio(url);
-                            a.currentTime = 0;
-                            return [4 /*yield*/, a.play()];
-                        case 2:
-                            _a.sent();
-                            return [3 /*break*/, 4];
-                        case 3:
-                            error_1 = _a.sent();
-                            console.error('Failed to play audio:', error_1);
-                            throw error_1;
-                        case 4: return [2 /*return*/];
-                    }
-                });
-            });
-        }
         return Object.assign(base, {
             getUrl: function () {
                 return audio;
@@ -10983,9 +11059,18 @@
         question.style({ marginTop: '30px' });
         base.append(question);
         var frontAudio = AddAudio();
+        frontAudio.style({ opacity: '0' });
         base.append(frontAudio);
         question.el.oninput = function () {
-            frontAudio.setText(question.getValue());
+            var text = question.getValue();
+            console.log(text);
+            frontAudio.setText(text);
+            if (text && text !== '<br>') {
+                frontAudio.style({ opacity: '1' });
+            }
+            else {
+                frontAudio.style({ opacity: '0' });
+            }
         };
         var hr = Div();
         hr.cssClass({
@@ -10998,9 +11083,17 @@
         var answer = DInput('Answer', 'Answer', { type: 'textarea' });
         base.append(answer);
         var backAudio = AddAudio();
+        backAudio.style({ opacity: '0' });
         base.append(backAudio);
-        backAudio.el.oninput = function () {
-            backAudio.setText(answer.getValue());
+        answer.el.oninput = function () {
+            var text = answer.getValue();
+            backAudio.setText(text);
+            if (text && text !== '<br>') {
+                backAudio.style({ opacity: '1' });
+            }
+            else {
+                backAudio.style({ opacity: '0' });
+            }
         };
         var submit = DButton();
         submit.cssClass({
@@ -11011,10 +11104,11 @@
         submit.text('Save');
         base.append(submit);
         submit.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
-            var cardData;
+            var cardData, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        _a.trys.push([0, 2, 3, 4]);
                         if (!question.getValue() || !answer.getValue())
                             return [2 /*return*/];
                         submit.style({ opacity: '0.5', pointerEvents: 'none' });
@@ -11030,14 +11124,22 @@
                         return [4 /*yield*/, services.cards.save(cardData)];
                     case 1:
                         _a.sent();
+                        return [3 /*break*/, 4];
+                    case 2:
+                        error_1 = _a.sent();
+                        console.log('Failed to save card:', error_1);
+                        return [3 /*break*/, 4];
+                    case 3:
                         question.setValue('');
                         answer.setValue('');
                         submit.style({ opacity: '1', pointerEvents: 'auto' });
                         submit.text('Save');
                         frontAudio.resetUI();
                         backAudio.resetUI();
+                        submit.text('Save');
                         router.back();
-                        return [2 /*return*/];
+                        return [7 /*endfinally*/];
+                    case 4: return [2 /*return*/];
                 }
             });
         }); };
@@ -11305,42 +11407,15 @@
         bottom: '24px',
     };
 
-    //   private audioCache: Map<string, HTMLAudioElement> = new Map();
     var CardFace = function (text, audio) {
         var base = Div();
         base.cssClass(baseStyle$5);
         var content = Div(text);
         base.append(content);
         if (audio) {
-            console.log('Y', audio);
-            var play = withRipple(Img(images.icons.play, { width: 24, height: 24 }));
-            play.el.onclick = playAudio.bind(null, audio);
-            play.cssClass(playButtonStyle);
-            base.append(play);
-        }
-        function playAudio(url) {
-            return __awaiter$8(this, void 0, void 0, function () {
-                var audio_1, error_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            _a.trys.push([0, 2, , 3]);
-                            audio_1 = new Audio(url);
-                            // this.audioCache.set(url, audio);
-                            // Reset to beginning and play
-                            audio_1.currentTime = 0;
-                            return [4 /*yield*/, audio_1.play()];
-                        case 1:
-                            _a.sent();
-                            return [3 /*break*/, 3];
-                        case 2:
-                            error_1 = _a.sent();
-                            console.error('Failed to play audio:', error_1);
-                            throw error_1;
-                        case 3: return [2 /*return*/];
-                    }
-                });
-            });
+            var audioPlay = AudioPlay(audio);
+            audioPlay.cssClass(playButtonStyle);
+            base.append(audioPlay);
         }
         return base;
     };
@@ -11400,7 +11475,6 @@
 
     var Card = function (_card) {
         var _a, _b;
-        console.log(_card);
         var localData = ldb.get("liucards-card-".concat(_card.id));
         if (localData) {
             console.log('-- loading locale', localData);
@@ -11427,7 +11501,8 @@
         // base.append(like)
         var loggedInUser = (_b = (_a = supabase$1.auth.getSession()) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
         if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
-            var edit = Div('✏️');
+            var edit = withRipple(Div().style({ position: 'relative' }));
+            edit.append(Img(images.icons.pen, { width: 20, height: 20 }));
             edit.cssClass({ marginTop: '30px', filter: 'saturate(0)' });
             base.append(edit);
             edit.el.onclick = function () {
@@ -11636,7 +11711,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.3.0').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.4.0').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });
@@ -11958,7 +12033,7 @@
     var menuIcon = MenuIcon();
     var backIcon = BackIcon();
     app.append(menuIcon, backIcon, view);
-    app.cssClass(baseStyle$b);
+    app.cssClass(baseStyle$c);
     var routes = {
         '/': HomePage,
         '/menu': MenuPage,

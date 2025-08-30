@@ -13,7 +13,6 @@ import { Like } from './like'
 
 export const Card = (_card: { id: string, front: string, back: string, added: boolean, deviceId: string, userId: string, front_audio_url?: string, back_audio_url?: string }) => {
 
-    console.log(_card);
     const localData = ldb.get(`liucards-card-${_card.id}`)
     if (localData) {
         console.log('-- loading locale', localData);
@@ -47,7 +46,8 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
 
     const loggedInUser = supabase.auth.getSession()?.user?.id
     if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
-        const edit = Div('✏️')
+        const edit = withRipple(Div().style({position: 'relative'})) 
+        edit.append(Img(images.icons.pen, { width: 20, height: 20 }))
         edit.cssClass({ marginTop: '30px', filter: 'saturate(0)' })
         base.append(edit)
         edit.el.onclick = () => {

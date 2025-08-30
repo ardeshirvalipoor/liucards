@@ -12,20 +12,29 @@ import { PageHeader } from '../shared/page-header'
 import { baseStyle } from './index.style'
 
 export const AddFlashcardPage = () => {
-    const base = Div()
-    base.cssClass(baseStyle)
+	const base = Div()
+	base.cssClass(baseStyle)
 
-    const title = PageHeader('Add Flashcard')
+	const title = PageHeader('Add Flashcard')
 	base.append(title)
 
 	const question = DInput('Question', 'Question', { type: 'textarea' })
 	question.style({ marginTop: '30px' })
-    base.append(question)
+	base.append(question)
 
 	const frontAudio = AddAudio()
+	frontAudio.style({ opacity: '0' })
 	base.append(frontAudio)
 	question.el.oninput = () => {
-		frontAudio.setText(question.getValue())
+		const text = question.getValue()
+		console.log(text);
+
+		frontAudio.setText(text)
+		if (text && text !== '<br>' ) {
+			frontAudio.style({ opacity: '1' })
+		} else {
+			frontAudio.style({ opacity: '0' })
+		}
 	}
 
 	const hr = Div()
@@ -38,12 +47,19 @@ export const AddFlashcardPage = () => {
 	base.append(hr)
 
 	const answer = DInput('Answer', 'Answer', { type: 'textarea' })
-    base.append(answer)
+	base.append(answer)
 
 	const backAudio = AddAudio()
+	backAudio.style({ opacity: '0' })
 	base.append(backAudio)
-	backAudio.el.oninput = () => {
-		backAudio.setText(answer.getValue())
+	answer.el.oninput = () => {
+		const text = answer.getValue()
+		backAudio.setText(text)
+		if (text && text !== '<br>' ) {
+			backAudio.style({ opacity: '1' })
+		} else {
+			backAudio.style({ opacity: '0' })
+		}
 	}
 
 	const submit = DButton()
@@ -53,45 +69,53 @@ export const AddFlashcardPage = () => {
 		marginTop: '20px'
 	})
 	submit.text('Save')
-    base.append(submit)
+	base.append(submit)
 
 	submit.el.onclick = async () => {
-		if (!question.getValue() || !answer.getValue()) return
-		submit.style({ opacity: '0.5', pointerEvents: 'none' })
-		submit.text('Saving...')
-		const cardData = {
-			front: question.getValue(),
-			back: answer.getValue(),
-			front_audio_url: frontAudio.getUrl(),
-			back_audio_url: backAudio.getUrl(),
-			device_id: ldb.get('liucards-device-id')
+		try {
+			if (!question.getValue() || !answer.getValue()) return
+			submit.style({ opacity: '0.5', pointerEvents: 'none' })
+			submit.text('Saving...')
+			const cardData = {
+				front: question.getValue(),
+				back: answer.getValue(),
+				front_audio_url: frontAudio.getUrl(),
+				back_audio_url: backAudio.getUrl(),
+				device_id: ldb.get('liucards-device-id')
+			}
+			console.log('card data', cardData);
+			await services.cards.save(cardData)
+
+		} catch (error) {
+			console.log('Failed to save card:', error);
+
+		} finally {
+			question.setValue('')
+			answer.setValue('')
+			submit.style({ opacity: '1', pointerEvents: 'auto' })
+			submit.text('Save')
+			frontAudio.resetUI()
+			backAudio.resetUI()
+			submit.text('Save')
+			router.back()
 		}
-		console.log('card data', cardData);
-		await services.cards.save(cardData)
-		question.setValue('')
-		answer.setValue('')
-		submit.style({ opacity: '1', pointerEvents: 'auto' })
-		submit.text('Save')
-		frontAudio.resetUI()
-		backAudio.resetUI()
-		router.back()
 	}
 
-    return Object.assign(base, {
-        ...base,
-        async exit({ to = '' }: IRouteParams) {
-            base.style(helpers.styles.PAGE_EXIT)
-        },
-        async enter({ from = '' }: IRouteParams) {
-            await waitFor(200)
+	return Object.assign(base, {
+		...base,
+		async exit({ to = '' }: IRouteParams) {
+			base.style(helpers.styles.PAGE_EXIT)
+		},
+		async enter({ from = '' }: IRouteParams) {
+			await waitFor(200)
 			setTimeout(() => {
 				question.focus()
 			}, 500);
-            // if (from === '/menu') {
-            //     base.style({ ...helpers.styles.PAGE_EXIT, ...EASE(0) })
-            // }
-            base.style({ ...helpers.styles.PAGE_ENTER, ...EASE(.16) }, 50)
+			// if (from === '/menu') {
+			//     base.style({ ...helpers.styles.PAGE_EXIT, ...EASE(0) })
+			// }
+			base.style({ ...helpers.styles.PAGE_ENTER, ...EASE(.16) }, 50)
 
-        }
-    })
+		}
+	})
 }
