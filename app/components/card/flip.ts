@@ -6,7 +6,7 @@ import { baseStyle } from "./flip.style"
 
 export const Flip = () => {
     const base = Div()
-    const icon = Img(images.icons.flip, { width: 36 })
+    const icon = Img(images.icons.flip, { width: 44 })
     withRipple(base, { bg: '#ccc' })
     base.style(baseStyle)
 

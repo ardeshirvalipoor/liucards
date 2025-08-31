@@ -17,9 +17,7 @@ export const HomePage = () => {
     const timeline = Timeline()
     base.append(timeline)
 
-    base.on('enter', (p: IRouteParams) => {
-
-    })
+    // return base
     async function enter({ query, from, to, data, params }: IRouteParams) {
         await waitFor(helpers.styles.PAGE_TRANSITION_DURATION)
         base.style(helpers.styles.PAGE_ENTER)

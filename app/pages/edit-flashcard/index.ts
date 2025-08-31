@@ -71,17 +71,17 @@ export const EditFlashcardPage = () => {
 		},
 		async enter({ from = '', params = { cardId: '' } }: IRouteParams) {
 			// temp solution:
+			await waitFor(200)
 			console.log('edit enter', params);
 			id = params.id
 
-			const card = ldb.get(`liucards-card-${params.id}`)
+			const card = await services.cards.getById(id)
 			console.log('edit enter', card);
 
 			if (card) {
 				question.setValue(card.front)
 				answer.setValue(card.back)
 			}
-			await waitFor(200)
 			setTimeout(() => {
 				question.focus()
 			}, 500);

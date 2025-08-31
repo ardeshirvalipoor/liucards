@@ -9,6 +9,7 @@ export const CardFace = (text: string, audio?: string) => {
     base.cssClass(styles.baseStyle)
 
     const content = Div(text)
+    content.cssClass(styles.contentStyle)
     base.append(content)
 
     if (audio) {

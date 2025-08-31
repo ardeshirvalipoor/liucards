@@ -2,6 +2,7 @@ import { withRipple } from '../../base/components/advanced/ghost/ghost'
 import { Div } from '../../base/components/native/div'
 import { Img } from '../../base/components/native/img'
 import ldb from '../../base/lib/ldb'
+import router from '../../base/lib/router'
 import state from '../../base/services/state'
 import { waitFor } from '../../base/utils/wait'
 import images from '../../configs/images'
@@ -47,11 +48,11 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
     const loggedInUser = supabase.auth.getSession()?.user?.id
     if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
         const edit = withRipple(Div().style({position: 'relative'})) 
-        edit.append(Img(images.icons.pen, { width: 20, height: 20 }))
+        edit.append(Img(images.icons.pen, { width: 28, height: 28 }))
         edit.cssClass({ marginTop: '30px', filter: 'saturate(0)' })
         base.append(edit)
         edit.el.onclick = () => {
-            location.href = `/flashcards/edit/${_card.id}`
+            router.goto(`/flashcards/edit/${_card.id}`)
             ldb.set(`liucards-card-${_card.id}`, _card)
         }
         // Show delete button

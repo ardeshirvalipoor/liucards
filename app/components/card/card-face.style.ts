@@ -13,6 +13,10 @@ export const baseStyle: CS = {
     webkitBackfaceVisibility: 'hidden',
 }
 
+export const contentStyle: CS = {
+    fontSize: '22px',
+}
+
 export const playButtonStyle: CS = {
     position: 'absolute',
     bottom: '24px',

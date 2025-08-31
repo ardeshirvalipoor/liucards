@@ -1023,6 +1023,28 @@
         device: device
     };
 
+    var _cardsCache = new Map();
+    function getById(id) {
+        return __awaiter$8(this, void 0, void 0, function () {
+            var resp, data;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (_cardsCache.has(id)) {
+                            return [2 /*return*/, _cardsCache.get(id)];
+                        }
+                        return [4 /*yield*/, fetch("/api/v1/cards/".concat(id))];
+                    case 1:
+                        resp = _a.sent();
+                        return [4 /*yield*/, resp.json()];
+                    case 2:
+                        data = _a.sent();
+                        _cardsCache.set(id, data);
+                        return [2 /*return*/, data];
+                }
+            });
+        });
+    }
     function update(params) {
         return __awaiter$8(this, void 0, void 0, function () {
             var accessToken, session, front, back, id, payload;
@@ -1052,13 +1074,10 @@
                                     Authorization: "Bearer ".concat(accessToken) // <- token here
                                 },
                                 body: JSON.stringify(payload)
-                            })
-                            // const cards = ldb.get('liucards-cards') || []
-                            // cards.push({front, back, 'liucards-device-id': localStorage.getItem('liucards-device-id'), added: true})
-                            // ldb.set('liucards-cards', cards)
-                        ];
+                            })];
                     case 2:
                         _a.sent();
+                        _cardsCache.set(id, __assign(__assign({}, _cardsCache.get(id)), payload));
                         // const cards = ldb.get('liucards-cards') || []
                         // cards.push({front, back, 'liucards-device-id': localStorage.getItem('liucards-device-id'), added: true})
                         // ldb.set('liucards-cards', cards)
@@ -1069,7 +1088,7 @@
     }
     function save(params) {
         return __awaiter$8(this, void 0, void 0, function () {
-            var accessToken, session, front, back, front_audio_url, back_audio_url, payload;
+            var accessToken, session, front, back, front_audio_url, back_audio_url, payload, resp, data;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1097,13 +1116,13 @@
                                     Authorization: "Bearer ".concat(accessToken) // <- token here
                                 },
                                 body: JSON.stringify(payload)
-                            })
-                            // const cards = ldb.get('liucards-cards') || []
-                            // cards.push({front, back, 'liucards-device-id': localStorage.getItem('liucards-device-id'), added: true})
-                            // ldb.set('liucards-cards', cards)
-                        ];
+                            })];
                     case 2:
-                        _a.sent();
+                        resp = _a.sent();
+                        return [4 /*yield*/, resp.json()];
+                    case 3:
+                        data = _a.sent();
+                        _cardsCache.set(data.id, data);
                         // const cards = ldb.get('liucards-cards') || []
                         // cards.push({front, back, 'liucards-device-id': localStorage.getItem('liucards-device-id'), added: true})
                         // ldb.set('liucards-cards', cards)
@@ -1114,7 +1133,12 @@
     }
     var cards = {
         save: save,
-        update: update
+        update: update,
+        getById: getById,
+        setCacheItem: function (id, data) {
+            console.log('in setting cache', id);
+            _cardsCache.set(id, data);
+        }
     };
 
     var dbReadyPromise = new Promise(function (resolve, reject) {
@@ -10480,7 +10504,7 @@
     }
     function loadMoreCards() {
         return __awaiter$8(this, void 0, void 0, function () {
-            var device_id, auth, url, response, data;
+            var device_id, auth, url, response, data, results;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -10497,16 +10521,18 @@
                         return [4 /*yield*/, response.json()];
                     case 2:
                         data = _a.sent();
-                        return [2 /*return*/, data.items.map(function (item) { return ({
-                                added: false,
-                                id: item.card_id,
-                                front: item.front,
-                                back: item.back,
-                                userId: item.user_id,
-                                front_audio_url: item.front_audio_url,
-                                back_audio_url: item.back_audio_url,
-                                deviceId: item.device_id,
-                            }); })];
+                        results = data.items.map(function (item) { return ({
+                            added: false,
+                            id: item.card_id,
+                            front: item.front,
+                            back: item.back,
+                            userId: item.user_id,
+                            front_audio_url: item.front_audio_url,
+                            back_audio_url: item.back_audio_url,
+                            deviceId: item.device_id,
+                        }); });
+                        results.forEach(function (r) { return services.cards.setCacheItem(r.id, r); });
+                        return [2 /*return*/, results];
                 }
             });
         });
@@ -10618,46 +10644,58 @@
     };
     var pauseStyle = __assign(__assign({}, playStyle), { top: '10px', transform: 'rotateY(180deg)' });
 
-    // todo: check if cache needed
-    // private audioCache: Map<string, HTMLAudioElement> = new Map();
-    // let audio = this.audioCache.get(url);
-    // if (!audio) {
-    //     audio = new Audio(url);
-    //     this.audioCache.set(url, audio);
-    // }
-    var AudioPlay = function (audio) {
-        var _audio = audio;
+    var AudioPlay = function (audioUrl) {
+        var _audioUrl = audioUrl;
+        var currentAudio = null;
         var base = Div();
         withRipple(base, { bg: '#ccc' });
         base.cssClass(baseStyle$b);
-        var play = Img(images.icons.play, { width: 24, height: 24 });
+        var play = Img(images.icons.play, { width: 30, height: 30 });
         play.cssClass(playStyle);
         play.el.onclick = playAudio;
         base.append(play);
-        var pause = Img(images.icons.pause, { width: 20, height: 20 });
+        var pause = Img(images.icons.pause, { width: 26, height: 26 });
         pause.cssClass(pauseStyle);
         pause.el.onclick = pauseAudio;
         base.append(pause);
+        function showPlayButton() {
+            play.style({ transform: 'rotateY(0deg)' });
+            pause.style({ transform: 'rotateY(180deg)' });
+        }
+        function showPauseButton() {
+            play.style({ transform: 'rotateY(180deg)' });
+            pause.style({ transform: 'rotateY(0deg)' });
+        }
         function playAudio() {
             return __awaiter$8(this, void 0, void 0, function () {
-                var audio_1, error_1;
+                var error_1;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, 2, , 3]);
-                            if (!_audio)
+                            if (!_audioUrl)
                                 return [2 /*return*/];
-                            audio_1 = new Audio(_audio);
-                            audio_1.currentTime = 0;
-                            return [4 /*yield*/, audio_1.play()];
+                            // If there's already an audio instance, reuse it
+                            if (!currentAudio || currentAudio.src !== _audioUrl) {
+                                // Clean up previous audio if it exists
+                                if (currentAudio) {
+                                    currentAudio.pause();
+                                    currentAudio.removeEventListener('ended', handleAudioEnded);
+                                }
+                                currentAudio = new Audio(_audioUrl);
+                                // Add event listener for when audio ends
+                                currentAudio.addEventListener('ended', handleAudioEnded);
+                            }
+                            currentAudio.currentTime = 0;
+                            return [4 /*yield*/, currentAudio.play()];
                         case 1:
                             _a.sent();
-                            play.style({ transform: 'rotateY(180deg)' });
-                            pause.style({ transform: 'rotateY(0deg)' });
+                            showPauseButton();
                             return [3 /*break*/, 3];
                         case 2:
                             error_1 = _a.sent();
                             console.error('Failed to play audio:', error_1);
+                            showPlayButton();
                             throw error_1;
                         case 3: return [2 /*return*/];
                     }
@@ -10666,15 +10704,12 @@
         }
         function pauseAudio() {
             return __awaiter$8(this, void 0, void 0, function () {
-                var audio_2;
                 return __generator(this, function (_a) {
                     try {
-                        if (!_audio)
+                        if (!currentAudio)
                             return [2 /*return*/];
-                        audio_2 = new Audio(_audio);
-                        audio_2.pause();
-                        play.style({ transform: 'rotateY(0deg)' });
-                        pause.style({ transform: 'rotateY(180deg)' });
+                        currentAudio.pause();
+                        showPlayButton();
                     }
                     catch (error) {
                         console.error('Failed to pause audio:', error);
@@ -10684,14 +10719,36 @@
                 });
             });
         }
+        function handleAudioEnded() {
+            showPlayButton();
+        }
         return Object.assign(base, {
             setAudio: function (audio) {
-                _audio = audio;
+                _audioUrl = audio;
+                // Reset the current audio instance when changing audio
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.removeEventListener('ended', handleAudioEnded);
+                    currentAudio = null;
+                }
+                showPlayButton();
             },
             reset: function () {
-                play.style({ transform: 'rotateY(180deg)' });
-                pause.style({ transform: 'rotateY(180deg)' });
-                _audio = undefined;
+                showPlayButton();
+                _audioUrl = undefined;
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.removeEventListener('ended', handleAudioEnded);
+                    currentAudio = null;
+                }
+            },
+            // Optional: cleanup method for when component is destroyed
+            cleanup: function () {
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.removeEventListener('ended', handleAudioEnded);
+                    currentAudio = null;
+                }
             }
         });
     };
@@ -11244,19 +11301,22 @@
                     _b.from; var _d = _b.params, params = _d === void 0 ? { cardId: '' } : _d;
                     return __generator(this, function (_e) {
                         switch (_e.label) {
-                            case 0:
+                            case 0: 
+                            // temp solution:
+                            return [4 /*yield*/, waitFor(200)];
+                            case 1:
                                 // temp solution:
+                                _e.sent();
                                 console.log('edit enter', params);
                                 id = params.id;
-                                card = ldb.get("liucards-card-".concat(params.id));
+                                return [4 /*yield*/, services.cards.getById(id)];
+                            case 2:
+                                card = _e.sent();
                                 console.log('edit enter', card);
                                 if (card) {
                                     question.setValue(card.front);
                                     answer.setValue(card.back);
                                 }
-                                return [4 /*yield*/, waitFor(200)];
-                            case 1:
-                                _e.sent();
                                 setTimeout(function () {
                                     question.focus();
                                 }, 500);
@@ -11402,6 +11462,9 @@
         backfaceVisibility: 'hidden',
         webkitBackfaceVisibility: 'hidden',
     };
+    var contentStyle = {
+        fontSize: '22px',
+    };
     var playButtonStyle = {
         position: 'absolute',
         bottom: '24px',
@@ -11411,6 +11474,7 @@
         var base = Div();
         base.cssClass(baseStyle$5);
         var content = Div(text);
+        content.cssClass(contentStyle);
         base.append(content);
         if (audio) {
             var audioPlay = AudioPlay(audio);
@@ -11430,14 +11494,13 @@
     };
 
     var baseStyle$3 = {
-        opacity: '.7',
-        marginTop: '10px',
+        marginTop: '16mpx',
         position: 'relative'
     };
 
     var Flip = function () {
         var base = Div();
-        var icon = Img(images.icons.flip, { width: 36 });
+        var icon = Img(images.icons.flip, { width: 44 });
         withRipple(base, { bg: '#ccc' });
         base.style(baseStyle$3);
         base.append(icon);
@@ -11502,11 +11565,11 @@
         var loggedInUser = (_b = (_a = supabase$1.auth.getSession()) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
         if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
             var edit = withRipple(Div().style({ position: 'relative' }));
-            edit.append(Img(images.icons.pen, { width: 20, height: 20 }));
+            edit.append(Img(images.icons.pen, { width: 28, height: 28 }));
             edit.cssClass({ marginTop: '30px', filter: 'saturate(0)' });
             base.append(edit);
             edit.el.onclick = function () {
-                location.href = "/flashcards/edit/".concat(_card.id);
+                router.goto("/flashcards/edit/".concat(_card.id));
                 ldb.set("liucards-card-".concat(_card.id), _card);
             };
             // Show delete button
@@ -11595,8 +11658,7 @@
         base.append(header);
         var timeline = Timeline();
         base.append(timeline);
-        base.on('enter', function (p) {
-        });
+        // return base
         function enter(_a) {
             return __awaiter$8(this, arguments, void 0, function (_b) {
                 _b.query; var from = _b.from; _b.to; _b.data; _b.params;
@@ -11711,7 +11773,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.4.0').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.4.1').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });
