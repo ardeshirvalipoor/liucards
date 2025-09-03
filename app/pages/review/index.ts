@@ -18,8 +18,13 @@ export const ReviewPage = () => {
 
     base.cssClass(helpers.styles.PAGE_BASE)
 
+    const loading = Div('Loading...')
+    loading.style({ padding: '20px', color: '#666', textAlign: 'center' })
+    body.append(loading)
+    //
 
     async function render() {
+        loading.remove()
         const cardData = await services.reviews.loadMoreCardsToReview()
         console.log({ cardData });
         if (!cardData) {

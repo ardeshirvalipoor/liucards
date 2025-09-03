@@ -49,7 +49,7 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
     if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
         const edit = withRipple(Div().style({position: 'relative'})) 
         edit.append(Img(images.icons.pen, { width: 28, height: 28 }))
-        edit.cssClass({ marginTop: '30px', filter: 'saturate(0)' })
+        edit.cssClass({ marginTop: '36px', filter: 'saturate(0)' })
         base.append(edit)
         edit.el.onclick = () => {
             router.goto(`/flashcards/edit/${_card.id}`)

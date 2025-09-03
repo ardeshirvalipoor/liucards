@@ -14,7 +14,7 @@ export const Timeline = () => {
 	base.el.addEventListener('scrollend', handleScrollEnd)
 
 	// load()
-
+	base.append(Div('Loading...').style({ padding: '20px', color: '#666', textAlign: 'center' }))
 	async function load() {
 		base.empty()
 		const localCards = ldb.get('liucards-cards') || []

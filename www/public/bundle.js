@@ -11456,7 +11456,8 @@
         inset: '0',
         display: 'grid',
         placeItems: 'center',
-        padding: '16px',
+        padding: '24px',
+        textAlign: 'center',
         borderRadius: '26px',
         boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
         backfaceVisibility: 'hidden',
@@ -11467,7 +11468,7 @@
     };
     var playButtonStyle = {
         position: 'absolute',
-        bottom: '24px',
+        bottom: '30px',
     };
 
     var CardFace = function (text, audio) {
@@ -11566,7 +11567,7 @@
         if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
             var edit = withRipple(Div().style({ position: 'relative' }));
             edit.append(Img(images.icons.pen, { width: 28, height: 28 }));
-            edit.cssClass({ marginTop: '30px', filter: 'saturate(0)' });
+            edit.cssClass({ marginTop: '36px', filter: 'saturate(0)' });
             base.append(edit);
             edit.el.onclick = function () {
                 router.goto("/flashcards/edit/".concat(_card.id));
@@ -11621,6 +11622,7 @@
         base.el.addEventListener('scroll', handleScrollStart);
         base.el.addEventListener('scrollend', handleScrollEnd);
         // load()
+        base.append(Div('Loading...').style({ padding: '20px', color: '#666', textAlign: 'center' }));
         function load() {
             return __awaiter$8(this, void 0, void 0, function () {
                 var localCards, cards;
@@ -11773,7 +11775,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.4.1').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.4.2').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });
@@ -11893,13 +11895,19 @@
         body.style({ padding: '0', scrollBehavior: 'smooth' });
         base.append(title, body);
         base.cssClass(helpers.styles.PAGE_BASE);
+        var loading = Div('Loading...');
+        loading.style({ padding: '20px', color: '#666', textAlign: 'center' });
+        body.append(loading);
+        //
         function render() {
             return __awaiter$8(this, void 0, void 0, function () {
                 var cardData, done, reviewCard;
                 var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, services.reviews.loadMoreCardsToReview()];
+                        case 0:
+                            loading.remove();
+                            return [4 /*yield*/, services.reviews.loadMoreCardsToReview()];
                         case 1:
                             cardData = _a.sent();
                             console.log({ cardData: cardData });
