@@ -20,7 +20,7 @@ export const MenuPage = () => {
     const login = MenuItem('Login with Google')
     const logout = MenuItem('Logout')
     const review = MenuItem('Review', '/review')
-    const version = Div('Version 1.4.2').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' })
+    const version = Div('Version 1.4.3').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' })
 
     welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' })
 

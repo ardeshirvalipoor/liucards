@@ -118,7 +118,8 @@
             play: '/images/play.svg?v=2',
             pause: '/images/pause.svg?v=2',
             pen: '/images/pen.svg?v=2',
-            music: '/images/music.svg?v=2'
+            music: '/images/music.svg?v=2',
+            arrow: '/images/arrow-right.svg?v=2',
         }
     };
 
@@ -129,7 +130,7 @@
         sizes: sizes};
 
     var _a;
-    var baseStyle$c = (_a = {
+    var baseStyle$e = (_a = {
             margin: '0',
             transition: 'all .16s',
             overflow: 'hidden',
@@ -941,68 +942,6 @@
             height: opts.height ? (opts.height + 'px') : 'auto'
         });
         base.el.src = path || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPs6OuoBwAFYwIfBAd8EQAAAABJRU5ErkJggg==';
-        return base;
-    };
-
-    var Button = function () {
-        var base = Base('button');
-        base.cssClass({
-            cursor: 'pointer',
-        });
-        base.el.onclick = function () { return setTimeout(function () { return base.emit('click'); }, 100); };
-        return Object.assign(base, {
-            focus: function () {
-                base.el.focus();
-            },
-            blur: function () {
-                base.el.blur();
-            },
-            disable: function () {
-                base.el.setAttribute('disabled', 'true');
-            },
-            enable: function () {
-                base.el.removeAttribute('disabled');
-            },
-            text: function (text) {
-                if (text === void 0) { text = 'Button'; }
-                base.el.innerHTML = text;
-            }
-        });
-    };
-
-    var DButton = function (title) {
-        if (title === void 0) { title = ''; }
-        var base = Button();
-        if (title)
-            base.text(title);
-        withRipple(base, { bg: 'white' });
-        base.cssClass({
-            justifyContent: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-            color: 'white',
-            borderRadius: '24px',
-            textAlign: 'center',
-            userSelect: 'none',
-            fontSize: '16px',
-            backgroundColor: '#606060ff',
-            display: 'flex',
-            alignItems: 'center',
-            transition: 'all 0.16s',
-            border: 'none',
-            '&:active': {
-                filter: 'brightness(0.95) contrast(1.1)',
-                boxShadow: '0 0px 0px rgba(0, 0, 0, 0.1)',
-                transform: 'scale(0.99)',
-            },
-            '&:hover': {
-                opacity: 0.8
-            },
-            '&:disabled': {
-                opacity: 0.7,
-                filter: 'saturate(0.1)',
-            }
-        });
         return base;
     };
 
@@ -10629,7 +10568,27 @@
         cards: cards
     };
 
-    var baseStyle$b = {
+    var baseStyle$d = {
+        width: '48px',
+        height: '48px',
+        borderRadius: '24px',
+        display: 'flex',
+        backgroundColor: '#eeeeee',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+    };
+
+    var ArrowButton = function (direction) {
+        var base = withRipple(Div());
+        base.cssClass(baseStyle$d);
+        var icon = Img(images.icons.arrow, { width: 32, height: 32 });
+        base.append(icon);
+        base.el.onclick = base.emit.bind(base, 'click');
+        return base;
+    };
+
+    var baseStyle$c = {
         position: 'relative',
         width: '40px',
         height: '40px',
@@ -10649,7 +10608,7 @@
         var currentAudio = null;
         var base = Div();
         withRipple(base, { bg: '#ccc' });
-        base.cssClass(baseStyle$b);
+        base.cssClass(baseStyle$c);
         var play = Img(images.icons.play, { width: 30, height: 30 });
         play.cssClass(playStyle);
         play.el.onclick = playAudio;
@@ -10749,7 +10708,8 @@
                     currentAudio.removeEventListener('ended', handleAudioEnded);
                     currentAudio = null;
                 }
-            }
+            },
+            playAudio: playAudio,
         });
     };
 
@@ -10776,6 +10736,14 @@
         });
     };
 
+    var baseStyle$b = {
+        padding: '10px',
+        border: '1px solid #ccc',
+        borderRadius: '34px',
+        height: '48px',
+        appearance: 'none',
+    };
+
     var LANGUAGES = [
         { code: 'en-US', name: 'English (US)', nativeName: 'English' },
         { code: 'nl-NL', name: 'Dutch', nativeName: 'Nederlands' },
@@ -10783,16 +10751,16 @@
         { code: 'fr-FR', name: 'French', nativeName: 'Français' },
         { code: 'es-ES', name: 'Spanish', nativeName: 'Español' },
         { code: 'it-IT', name: 'Italian', nativeName: 'Italiano' },
-        { code: 'hi-IN', name: 'Hindi', nativeName: 'हिन्दी' },
         { code: 'zh-CN', name: 'Chinese (Simplified)', nativeName: '简体中文' },
+        { code: 'sv-SE', name: 'Swedish', nativeName: 'Svenska' },
+        { code: 'ja-JP', name: 'Japanese', nativeName: '日本語' },
+        { code: 'hi-IN', name: 'Hindi', nativeName: 'हिन्दी' },
         { code: 'ar-SA', name: 'Arabic', nativeName: 'العربية' },
         { code: 'pt-BR', name: 'Portuguese (Brazil)', nativeName: 'Português' },
         { code: 'ru-RU', name: 'Russian', nativeName: 'Русский' },
-        { code: 'ja-JP', name: 'Japanese', nativeName: '日本語' },
         { code: 'ko-KR', name: 'Korean', nativeName: '한국어' },
         { code: 'tr-TR', name: 'Turkish', nativeName: 'Türkçe' },
         { code: 'pl-PL', name: 'Polish', nativeName: 'Polski' },
-        { code: 'sv-SE', name: 'Swedish', nativeName: 'Svenska' },
         { code: 'vi-VN', name: 'Vietnamese', nativeName: 'Tiếng Việt' },
         { code: 'th-TH', name: 'Thai', nativeName: 'ไทย' },
         { code: 'id-ID', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
@@ -10800,11 +10768,19 @@
     ];
     var LanguageSelect = function () {
         var base = Select();
+        base.cssClass(baseStyle$b);
         LANGUAGES.forEach(function (lang) {
             var option = Option(lang.code, lang.name);
             base.append(option);
         });
-        return base;
+        return Object.assign(base, {
+            getValue: function () {
+                return base.el.value;
+            },
+            setValue: function (val) {
+                base.el.value = val;
+            }
+        });
     };
 
     var baseStyle$a = {
@@ -10827,6 +10803,7 @@
                 return;
             generate.style({ display: 'none' });
             action.style({ display: 'flex' });
+            langs.setValue(ldb.get('last-tts-lang') || 'en-US');
         };
         base.append(generate);
         var action = Div();
@@ -10834,7 +10811,7 @@
         base.append(action);
         var langs = LanguageSelect();
         action.append(langs);
-        var go = DButton('Go');
+        var go = ArrowButton();
         action.append(go);
         var play = AudioPlay();
         play.style({ display: 'none' });
@@ -10844,16 +10821,18 @@
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        ldb.set('last-tts-lang', langs.getValue());
                         action.style({ pointerEvents: 'none', opacity: '0.5' });
                         selectedLang = langs.getValue();
                         return [4 /*yield*/, services.supabase.generateAudio(text, selectedLang)];
                     case 1:
                         final = _a.sent();
+                        action.style({ pointerEvents: 'all', opacity: '1', display: 'none' });
                         console.log('audio saved:', final);
                         audio = final;
                         play.setAudio(final);
-                        action.style({ display: 'none' });
                         play.style({ display: 'block' });
+                        play.playAudio();
                         return [2 /*return*/];
                 }
             });
@@ -10873,6 +10852,68 @@
                 text = '';
             }
         });
+    };
+
+    var Button = function () {
+        var base = Base('button');
+        base.cssClass({
+            cursor: 'pointer',
+        });
+        base.el.onclick = function () { return setTimeout(function () { return base.emit('click'); }, 100); };
+        return Object.assign(base, {
+            focus: function () {
+                base.el.focus();
+            },
+            blur: function () {
+                base.el.blur();
+            },
+            disable: function () {
+                base.el.setAttribute('disabled', 'true');
+            },
+            enable: function () {
+                base.el.removeAttribute('disabled');
+            },
+            text: function (text) {
+                if (text === void 0) { text = 'Button'; }
+                base.el.innerHTML = text;
+            }
+        });
+    };
+
+    var DButton = function (title) {
+        if (title === void 0) { title = ''; }
+        var base = Button();
+        if (title)
+            base.text(title);
+        withRipple(base, { bg: 'white' });
+        base.cssClass({
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            color: 'white',
+            borderRadius: '24px',
+            textAlign: 'center',
+            userSelect: 'none',
+            fontSize: '16px',
+            backgroundColor: '#606060ff',
+            display: 'flex',
+            alignItems: 'center',
+            transition: 'all 0.16s',
+            border: 'none',
+            '&:active': {
+                filter: 'brightness(0.95) contrast(1.1)',
+                boxShadow: '0 0px 0px rgba(0, 0, 0, 0.1)',
+                transform: 'scale(0.99)',
+            },
+            '&:hover': {
+                opacity: 0.8
+            },
+            '&:disabled': {
+                opacity: 0.7,
+                filter: 'saturate(0.1)',
+            }
+        });
+        return base;
     };
 
     var Input = function (placeholder, type, options) {
@@ -11775,7 +11816,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.4.2').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.4.3').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });
@@ -12103,7 +12144,7 @@
     var menuIcon = MenuIcon();
     var backIcon = BackIcon();
     app.append(menuIcon, backIcon, view);
-    app.cssClass(baseStyle$c);
+    app.cssClass(baseStyle$e);
     var routes = {
         '/': HomePage,
         '/menu': MenuPage,

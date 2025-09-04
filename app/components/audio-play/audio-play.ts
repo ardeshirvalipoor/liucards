@@ -103,6 +103,7 @@ export const AudioPlay = (audioUrl?: string) => {
         currentAudio.removeEventListener('ended', handleAudioEnded)
         currentAudio = null
       }
-    }
+    },
+    playAudio,
   })
 }
