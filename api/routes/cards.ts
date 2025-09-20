@@ -1,6 +1,6 @@
 
 import { Router, Request, Response, NextFunction } from 'express'
-import controllers from '../controllers'
+import controllers from '../handlers'
 import middlewares from '../middlewares'
 
 const router = Router()
