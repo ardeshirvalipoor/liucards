@@ -1644,6 +1644,7 @@
                         _c.sent();
                         return [2 /*return*/, null];
                     case 3:
+                        console.log('--> got review data', data);
                         _reviewCache.push.apply(_reviewCache, __spreadArray([], __read(data.items.map(function (item) { return ({
                             added: false,
                             card_id: item.card_id,
@@ -1655,8 +1656,8 @@
                             userId: item.user_id,
                             deviceId: item.device_id,
                         }); })), false));
-                        console.log('end of function ', _reviewCache);
-                        return [2 /*return*/];
+                        console.log('--> review cache now ', _reviewCache);
+                        return [2 /*return*/, _reviewCache.shift()];
                 }
             });
         });
@@ -10864,7 +10865,7 @@
                 text = newText;
             },
             resetUI: function () {
-                generate.style({ display: 'flex' });
+                generate.style({ display: 'none' });
                 action.style({ display: 'none' });
                 play.style({ display: 'none' });
                 audio = null;
@@ -11857,7 +11858,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.4.3').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.4.4').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });

@@ -64,7 +64,7 @@ export const AddAudio = () => {
             text = newText;
         },
         resetUI: () => {
-            generate.style({ display: 'flex' });
+            generate.style({ display: 'none' });
             action.style({ display: 'none' });
             play.style({ display: 'none' });
             audio = null;

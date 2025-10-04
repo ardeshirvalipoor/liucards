@@ -43,6 +43,8 @@ async function loadMoreCardsToReview(): Promise<any> {
 		await services.studySession.end()
 		return null
 	}
+	console.log('--> got review data', data);
+	
 	_reviewCache.push(...data.items.map((item: any) => ({
 		added: false,
 		card_id: item.card_id,
@@ -54,6 +56,9 @@ async function loadMoreCardsToReview(): Promise<any> {
 		userId: item.user_id,
 		deviceId: item.device_id,
 	})))
+	console.log('--> review cache now ', _reviewCache);
+	
+	return  _reviewCache.shift()
 	console.log('end of function ', _reviewCache);
 
 }
