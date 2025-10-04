@@ -38,16 +38,9 @@ async function loadMoreCards() {
   "count": 2
   }
 	*/
-	const device_id = utils.device.getId()
-	const auth = services.supabase.auth.getSession()
-	const url = `/api/v1/cards?limit=100&device_id=${device_id}`
-	const response = await fetch(url, {
-		headers: {
-			Authorization: `Bearer ${auth?.access_token}`
-		}
-	})
-	const data = await response.json()
-	const results = data.items.map((item: any) => ({
+	const url = `/api/v1/cards`
+	const data = await utils.http.get(url)
+	const results = data.items?.cards?.map((item: any) => ({
 		added: false,
 		id: item.card_id,
 		front: item.front,

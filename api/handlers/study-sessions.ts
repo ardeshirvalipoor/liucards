@@ -17,8 +17,7 @@ async function start(req: Request, res: Response) {
 	if (userId) {
 		identifier = userId;
 	} else {
-		const device_id = parsed.data.device_id;
-		if (!device_id) return res.status(401).json({ error: 'Device ID or login required' });
+		const device_id = req.user?.device_id;
 		identifier = device_id;
 		isDeviceId = true;
 	}
@@ -46,8 +45,7 @@ async function end(req: Request, res: Response) {
 	if (userId) {
 		identifier = userId;
 	} else {
-		const device_id = parsed.data.device_id;
-		if (!device_id) return res.status(401).json({ error: 'Device ID or login required' });
+		const device_id =  req.user?.device_id;
 		identifier = device_id;
 		isDeviceId = true;
 	}

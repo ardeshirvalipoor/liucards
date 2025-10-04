@@ -1,14 +1,14 @@
 
 import { Router, Request, Response, NextFunction } from 'express'
-import controllers from '../handlers'
+import handlers from '../handlers'
 import middlewares from '../middlewares'
 
 const router = Router()
 
-router.post('/', middlewares.auth.optional, controllers.cards.post)
-router.put('/:id', middlewares.auth.optional, controllers.cards.edit)
-router.post('/search', middlewares.auth.optional, controllers.cards.search)
-router.get('/', middlewares.auth.optional, controllers.cards.list)
+router.post('/', middlewares.auth.requireUserOrDevice, handlers.cards.post)
+router.put('/:id', middlewares.auth.requireUserOrDevice, handlers.cards.edit)
+router.post('/find', middlewares.auth.requireUserOrDevice, handlers.cards.find)
+router.get('/', middlewares.auth.requireUserOrDevice, handlers.cards.list)
 export default router
 
 

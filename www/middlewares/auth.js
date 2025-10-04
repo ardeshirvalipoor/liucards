@@ -9,15 +9,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.requireUserOrDevice = requireUserOrDevice;
 const supabase_1 = require("../configs/supabase");
-// Strict: 401 if missing/invalid token
+const uuid_1 = require("uuid");
 function required(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const auth = req.headers.authorization || '';
-        const m = auth.match(/^Bearer\s+(.+)$/i);
-        if (!m)
+        const token = ((_a = auth.match(/^Bearer\s+(.+)$/i)) === null || _a === void 0 ? void 0 : _a[1]) || null;
+        if (!token)
             return res.status(401).json({ error: 'Missing Bearer token' });
-        const token = m[1];
         const { data, error } = yield supabase_1.supabaseAdmin.auth.getUser(token);
         if (error || !(data === null || data === void 0 ? void 0 : data.user)) {
             return res.status(401).json({ error: 'Invalid token' });
@@ -26,22 +27,33 @@ function required(req, res, next) {
         next();
     });
 }
-// Lenient: attaches req.user if token is valid; continues otherwise
-function optional(req, res, next) {
+function requireUserOrDevice(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
-        const auth = req.headers.authorization || '';
-        const m = auth.match(/^Bearer\s+(.+)$/i);
-        if (!m)
-            return next();
-        const token = m[1];
-        const { data } = yield supabase_1.supabaseAdmin.auth.getUser(token);
-        console.log('in optional', data, token);
-        if (data === null || data === void 0 ? void 0 : data.user)
-            req.user = data.user;
-        next();
+        var _a, _b;
+        try {
+            const token = (_b = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.match(/^Bearer\s+(.+)$/i)) === null || _b === void 0 ? void 0 : _b[1];
+            if (token) {
+                const { data } = yield supabase_1.supabaseAdmin.auth.getUser(token);
+                req.user = data.user;
+            }
+            const deviceId = req.header('x-device-id');
+            if (!req.user && !deviceId) {
+                return res.status(400).json({ error: 'user id or x-device-id header is required' });
+            }
+            if (!req.user && deviceId && !(0, uuid_1.validate)(deviceId)) {
+                return res.status(400).json({ error: 'Invalid x-device-id format' });
+            }
+            req.user = req.user || {};
+            req.user.device_id = deviceId;
+            next();
+        }
+        catch (err) {
+            console.error('requireUserOrDevice error:', err);
+            return res.status(500).json({ error: 'Internal server error' });
+        }
     });
 }
 exports.default = {
     required,
-    optional
+    requireUserOrDevice
 };

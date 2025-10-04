@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// Extend the Request interface to include the user property
 const jwt = require("jsonwebtoken");
 function token(secret) {
     return (req, res, next) => __awaiter(this, void 0, void 0, function* () {

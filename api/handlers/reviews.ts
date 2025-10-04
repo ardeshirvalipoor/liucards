@@ -8,7 +8,7 @@ async function getQueue(req: Request, res: Response) {
 	const parsed = getQueueQuerySchema.safeParse(req.query)
 	if (!parsed.success) return res.status(400).json({ error: 'Invalid query' })
 
-	const { limit, device_id } = parsed.data
+	const { limit } = parsed.data
 
 	let identifier: string
 	let isDeviceId = false
@@ -16,8 +16,7 @@ async function getQueue(req: Request, res: Response) {
 	if (userId) {
 		identifier = userId
 	} else {
-		if (!device_id) return res.status(401).json({ error: 'Device ID or login required' })
-		identifier = device_id
+		identifier = req.user?.device_id
 		isDeviceId = true
 	}
 
@@ -44,9 +43,7 @@ async function post(req: Request, res: Response) {
 	if (userId) {
 		identifier = userId
 	} else {
-		const device_id = parsed.data.device_id
-		if (!device_id) return res.status(401).json({ error: 'Device ID or login required' })
-		identifier = device_id
+		identifier = req.user?.device_id
 		isDeviceId = true
 	}
 

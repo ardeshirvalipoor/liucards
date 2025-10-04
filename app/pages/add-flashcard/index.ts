@@ -81,10 +81,13 @@ export const AddFlashcardPage = () => {
 				back: answer.getValue(),
 				front_audio_url: frontAudio.getUrl(),
 				back_audio_url: backAudio.getUrl(),
-				device_id: ldb.get('liucards-device-id')
 			}
-			console.log('card data', cardData);
-			await services.cards.save(cardData)
+			const id = await services.cards.create(cardData)
+			console.log('Created card:', id);
+			
+			await services.savedCards.save(id)
+			console.log('Card saved to collection');
+			
 
 		} catch (error) {
 			console.log('Failed to save card:', error);

@@ -1,16 +1,15 @@
 import { Router } from 'express'
-import controllers from '../handlers'
+import handlers from '../handlers'
 import middlewares from '../middlewares'
 
 export const router = Router()
 
-router.use(middlewares.auth.optional)
-router.get('/queue', controllers.reviews.getQueue)
-router.post('/', controllers.reviews.post)
+router.use(middlewares.auth.requireUserOrDevice)
+router.get('/queue', handlers.reviews.getQueue)
+router.post('/', handlers.reviews.post)
 
-router.post('/sessions/start', controllers.studySessions.start)
-router.post('/sessions/end', controllers.studySessions.end)
-
+router.post('/sessions/start', handlers.studySessions.start)
+router.post('/sessions/end', handlers.studySessions.end)
 
 export default router
 

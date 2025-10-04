@@ -13,7 +13,6 @@ const supabase_1 = require("../configs/supabase");
 const fsrs_1 = require("./fsrs");
 function getQueue(identifier_1, limit_1) {
     return __awaiter(this, arguments, void 0, function* (identifier, limit, isDeviceId = false) {
-        console.log('Getting review queue for:', identifier, limit, isDeviceId);
         // Due cards, earliest first; optionally exclude 'new'
         let q = supabase_1.supabaseAdmin
             .from('saved_cards')
@@ -48,7 +47,6 @@ function getQueue(identifier_1, limit_1) {
                 due_at: row.due_at,
             });
         });
-        console.log(items);
         return { items, count: count !== null && count !== void 0 ? count : 0 };
     });
 }

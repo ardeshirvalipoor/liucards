@@ -56,7 +56,15 @@ export const EditFlashcardPage = () => {
 		if (locale) {
 			ldb.set(`liucards-card-${id}`, { front: question.getValue(), back: answer.getValue() })
 		}
-		await services.cards.update(cardData)
+		try {
+			await services.cards.update(cardData)
+		} catch (error) {
+			console.error('Failed to update card:', error)
+			alert('Failed to update card. Please try again.')
+			submit.style({ opacity: '1', pointerEvents: 'auto' })
+			submit.text('Update')
+			return
+		}
 		router.goto('/') // temp
 		question.setValue('')
 		answer.setValue('')

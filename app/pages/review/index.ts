@@ -7,6 +7,7 @@ import { ReviewCard } from "../../components/card/review-card";
 import helpers from "../../helpers";
 import services from "../../services";
 import { Body } from "../shared/body";
+import { Loader } from "../shared/loader";
 import { PageHeader } from "../shared/page-header";
 
 export const ReviewPage = () => {
@@ -17,16 +18,21 @@ export const ReviewPage = () => {
     base.append(title, body)
 
     base.cssClass(helpers.styles.PAGE_BASE)
-
-    const loading = Div('Loading...')
-    loading.style({ padding: '20px', color: '#666', textAlign: 'center' })
-    body.append(loading)
     //
 
-    async function render() {
-        loading.remove()
+    async function render(fresh = true) {
+        console.log('in render');
+        
+        if (fresh) {
+            body.empty() // for now
+            const loading = Loader()
+            body.append(loading)
+        }
         const cardData = await services.reviews.loadMoreCardsToReview()
-        console.log({ cardData });
+        if (fresh) {
+            body.empty() // for now
+        }   
+
         if (!cardData) {
             const done = Div('\n\n\nNo cards to review, Good job!')
             done.cssClass({
@@ -48,7 +54,7 @@ export const ReviewPage = () => {
             const total_time_ms = ldb.get('liu-total-time-ms') || 0
             ldb.set('liu-total-time-ms', total_time_ms + 1000)
             await services.reviews.submitReview(cardData.saved_card_id, { correct: true, think_time_ms: 1000, duration_ms: 1000, confidence: 2, rating: 2 })
-            render()
+            render(false)
         })
         reviewCard.on('dontKnow', async () => {
             services.reviews.submitReview(cardData.saved_card_id, { correct: false, think_time_ms: 2000, duration_ms: 2000, confidence: 1, rating: 1 })
@@ -56,7 +62,7 @@ export const ReviewPage = () => {
             ldb.set('liu-cards-studied', cards_studied + 1)
             const total_time_ms = ldb.get('liu-total-time-ms') || 0
             ldb.set('liu-total-time-ms', total_time_ms + 2000)
-            render()
+            render(false)
         })
 
         body.append(reviewCard)
@@ -69,7 +75,6 @@ export const ReviewPage = () => {
         },
         async enter({ from = '' }: IRouteParams) {
             await waitFor(200)
-            body.empty() // for now
             render()
 
             // if (from === '/menu') {

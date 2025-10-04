@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const controllers_1 = require("../controllers");
+const handlers_1 = require("../handlers");
 const middlewares_1 = require("../middlewares");
 const router = (0, express_1.Router)();
-router.post('/', middlewares_1.default.auth.optional, controllers_1.default.cards.post);
-router.put('/:id', middlewares_1.default.auth.optional, controllers_1.default.cards.edit);
-router.post('/search', middlewares_1.default.auth.optional, controllers_1.default.cards.search);
-router.get('/', middlewares_1.default.auth.optional, controllers_1.default.cards.list);
+router.post('/', middlewares_1.default.auth.requireUserOrDevice, handlers_1.default.cards.post);
+router.put('/:id', middlewares_1.default.auth.requireUserOrDevice, handlers_1.default.cards.edit);
+router.post('/find', middlewares_1.default.auth.requireUserOrDevice, handlers_1.default.cards.find);
+router.get('/', middlewares_1.default.auth.requireUserOrDevice, handlers_1.default.cards.list);
 exports.default = router;

@@ -120,6 +120,7 @@
             pen: '/images/pen.svg?v=2',
             music: '/images/music.svg?v=2',
             arrow: '/images/arrow-right.svg?v=2',
+            loader: '/images/loader.svg?v=2',
         }
     };
 
@@ -393,7 +394,7 @@
             }
         };
     }
-    function get$2(key) {
+    function get$3(key) {
         var raw = String(localStorage.getItem(key) || '');
         try {
             return JSON.parse(raw);
@@ -409,7 +410,7 @@
         localStorage.clear();
     }
     var ldb = {
-        get: get$2,
+        get: get$3,
         set: save$1,
         save: save$1,
         remove: remove$1,
@@ -958,126 +959,178 @@
         getId: getId
     };
 
+    function getDefaultHeader() {
+        var session = services.supabase.auth.getSession();
+        var accessToken = session === null || session === void 0 ? void 0 : session.access_token;
+        return __assign({ 'Content-Type': 'application/json', 'x-device-id': utils.device.getId() }, (accessToken ? { Authorization: "Bearer ".concat(accessToken) } : {}));
+    }
+    // GET
+    // todo: deduplicate requests
+    function get$2(url_1) {
+        return __awaiter$8(this, arguments, void 0, function (url, customHeader) {
+            var res, errorText, err_1;
+            if (customHeader === void 0) { customHeader = {}; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 5, , 6]);
+                        return [4 /*yield*/, fetch(url, {
+                                method: 'GET',
+                                headers: __assign(__assign({}, getDefaultHeader()), customHeader),
+                            })];
+                    case 1:
+                        res = _a.sent();
+                        if (!!res.ok) return [3 /*break*/, 3];
+                        return [4 /*yield*/, res.text()];
+                    case 2:
+                        errorText = _a.sent();
+                        throw new Error("HTTP ".concat(res.status, ": ").concat(errorText));
+                    case 3: return [4 /*yield*/, res.json()];
+                    case 4: return [2 /*return*/, _a.sent()];
+                    case 5:
+                        err_1 = _a.sent();
+                        console.error('HTTP GET Error:', err_1);
+                        throw err_1;
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    }
+    // POST
+    function post$1(url_1, data_1) {
+        return __awaiter$8(this, arguments, void 0, function (url, data, customHeader) {
+            var res, errorText, err_2;
+            if (customHeader === void 0) { customHeader = {}; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 5, , 6]);
+                        return [4 /*yield*/, fetch(url, {
+                                method: 'POST',
+                                headers: __assign(__assign({}, getDefaultHeader()), customHeader),
+                                body: JSON.stringify(data),
+                            })];
+                    case 1:
+                        res = _a.sent();
+                        if (!!res.ok) return [3 /*break*/, 3];
+                        return [4 /*yield*/, res.text()];
+                    case 2:
+                        errorText = _a.sent();
+                        throw new Error("HTTP ".concat(res.status, ": ").concat(errorText));
+                    case 3: return [4 /*yield*/, res.json()];
+                    case 4: return [2 /*return*/, _a.sent()];
+                    case 5:
+                        err_2 = _a.sent();
+                        console.error('HTTP POST Error:', err_2);
+                        throw err_2;
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    }
+    // PUT
+    function put$1(url_1, data_1) {
+        return __awaiter$8(this, arguments, void 0, function (url, data, customHeader) {
+            var res, errorText, err_3;
+            if (customHeader === void 0) { customHeader = {}; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 5, , 6]);
+                        return [4 /*yield*/, fetch(url, {
+                                method: 'PUT',
+                                headers: __assign(__assign({}, getDefaultHeader()), customHeader),
+                                body: JSON.stringify(data),
+                            })];
+                    case 1:
+                        res = _a.sent();
+                        if (!!res.ok) return [3 /*break*/, 3];
+                        return [4 /*yield*/, res.text()];
+                    case 2:
+                        errorText = _a.sent();
+                        throw new Error("HTTP ".concat(res.status, ": ").concat(errorText));
+                    case 3: return [4 /*yield*/, res.json()];
+                    case 4: return [2 /*return*/, _a.sent()];
+                    case 5:
+                        err_3 = _a.sent();
+                        console.error('HTTP PUT Error:', err_3);
+                        throw err_3;
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    }
+    var http = {
+        post: post$1,
+        put: put$1,
+        get: get$2,
+    };
+
     var utils = {
-        device: device
+        device: device,
+        http: http
     };
 
     var _cardsCache = new Map();
+    // Fetch card by ID, with caching
     function getById(id) {
         return __awaiter$8(this, void 0, void 0, function () {
-            var resp, data;
+            var resp;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (_cardsCache.has(id)) {
+                        if (_cardsCache.has(id))
                             return [2 /*return*/, _cardsCache.get(id)];
-                        }
-                        return [4 /*yield*/, fetch("/api/v1/cards/".concat(id))];
+                        return [4 /*yield*/, utils.http.get("/api/v1/cards/".concat(id))];
                     case 1:
                         resp = _a.sent();
-                        return [4 /*yield*/, resp.json()];
-                    case 2:
-                        data = _a.sent();
-                        _cardsCache.set(id, data);
-                        return [2 /*return*/, data];
+                        _cardsCache.set(id, resp);
+                        return [2 /*return*/, resp];
                 }
             });
         });
     }
-    function update(params) {
+    // Update card
+    function update(payload) {
         return __awaiter$8(this, void 0, void 0, function () {
-            var accessToken, session, front, back, id, payload;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0:
-                        accessToken = null;
-                        return [4 /*yield*/, services.supabase.auth.getSession()];
+                    case 0: return [4 /*yield*/, utils.http.put("/api/v1/cards/".concat(payload.id), payload)];
                     case 1:
-                        session = _a.sent();
-                        if (session) {
-                            accessToken = session.access_token;
-                            console.log('Token:', accessToken);
-                        }
-                        front = params.front, back = params.back, id = params.id;
-                        console.log('EDIT PARAMS:', params);
-                        payload = {
-                            front: front,
-                            back: back,
-                            device_id: utils.device.getId(),
-                        };
-                        console.log('EDIT PAYLOAD:', payload);
-                        return [4 /*yield*/, fetch("/api/v1/cards/".concat(id), {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Authorization: "Bearer ".concat(accessToken) // <- token here
-                                },
-                                body: JSON.stringify(payload)
-                            })];
-                    case 2:
                         _a.sent();
-                        _cardsCache.set(id, __assign(__assign({}, _cardsCache.get(id)), payload));
-                        // const cards = ldb.get('liucards-cards') || []
-                        // cards.push({front, back, 'liucards-device-id': localStorage.getItem('liucards-device-id'), added: true})
-                        // ldb.set('liucards-cards', cards)
+                        _cardsCache.set(payload.id, __assign(__assign({}, _cardsCache.get(payload.id)), payload));
                         return [2 /*return*/, true];
                 }
             });
         });
     }
-    function save(params) {
+    // Create new card
+    function create(params) {
         return __awaiter$8(this, void 0, void 0, function () {
-            var accessToken, session, front, back, front_audio_url, back_audio_url, payload, resp, data;
+            var payload, resp;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        accessToken = null;
-                        return [4 /*yield*/, services.supabase.auth.getSession()];
+                        payload = __assign(__assign({}, params), { channel_id: null, client_created_at: new Date().toISOString() });
+                        return [4 /*yield*/, utils.http.post('/api/v1/cards', payload)];
                     case 1:
-                        session = _a.sent();
-                        if (session) {
-                            accessToken = session.access_token;
-                            console.log('Token:', accessToken);
-                        }
-                        front = params.front, back = params.back, front_audio_url = params.front_audio_url, back_audio_url = params.back_audio_url;
-                        payload = {
-                            front: front,
-                            back: back,
-                            front_audio_url: front_audio_url,
-                            back_audio_url: back_audio_url,
-                            client_created_at: new Date().toISOString(),
-                            device_id: utils.device.getId(),
-                        };
-                        return [4 /*yield*/, fetch('/api/v1/cards', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    Authorization: "Bearer ".concat(accessToken) // <- token here
-                                },
-                                body: JSON.stringify(payload)
-                            })];
-                    case 2:
                         resp = _a.sent();
-                        return [4 /*yield*/, resp.json()];
-                    case 3:
-                        data = _a.sent();
-                        _cardsCache.set(data.id, data);
-                        // const cards = ldb.get('liucards-cards') || []
-                        // cards.push({front, back, 'liucards-device-id': localStorage.getItem('liucards-device-id'), added: true})
-                        // ldb.set('liucards-cards', cards)
-                        return [2 /*return*/, true];
+                        console.log('Created card response:', resp);
+                        _cardsCache.set(resp.id, resp);
+                        return [2 /*return*/, resp.id];
                 }
             });
         });
+    }
+    // Manually set cache item
+    function setCacheItem(id, data) {
+        _cardsCache.set(id, data);
     }
     var cards = {
-        save: save,
+        create: create,
         update: update,
         getById: getById,
-        setCacheItem: function (id, data) {
-            console.log('in setting cache', id);
-            _cardsCache.set(id, data);
-        }
+        setCacheItem: setCacheItem
     };
 
     var dbReadyPromise = new Promise(function (resolve, reject) {
@@ -1571,35 +1624,26 @@
     var _reviewCache = [];
     function loadMoreCardsToReview() {
         return __awaiter$8(this, void 0, void 0, function () {
-            var device_id, auth, url, response, data;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var url, data;
+            var _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         console.log('in load More Cards', _reviewCache);
                         // Check if we have cached reviews
                         if (_reviewCache.length > 0) {
                             return [2 /*return*/, _reviewCache.shift()];
                         }
-                        device_id = utils.device.getId();
-                        auth = services.supabase.auth.getSession();
-                        url = "/api/v1/reviews/queue?limit=100&device_id=".concat(device_id);
-                        return [4 /*yield*/, fetch(url, {
-                                headers: {
-                                    Authorization: "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token)
-                                }
-                            })];
+                        url = "/api/v1/reviews/queue?limit=20";
+                        return [4 /*yield*/, utils.http.get(url)];
                     case 1:
-                        response = _a.sent();
-                        return [4 /*yield*/, response.json()];
-                    case 2:
-                        data = _a.sent();
-                        if (!(data.items.length === 0)) return [3 /*break*/, 4];
-                        console.log('--- length is 0');
+                        data = _c.sent();
+                        if (!(((_b = (_a = data.items) === null || _a === void 0 ? void 0 : _a.cards) === null || _b === void 0 ? void 0 : _b.length) === 0)) return [3 /*break*/, 3];
                         return [4 /*yield*/, services.studySession.end()];
-                    case 3:
-                        _a.sent();
+                    case 2:
+                        _c.sent();
                         return [2 /*return*/, null];
-                    case 4:
+                    case 3:
                         _reviewCache.push.apply(_reviewCache, __spreadArray([], __read(data.items.map(function (item) { return ({
                             added: false,
                             card_id: item.card_id,
@@ -1612,8 +1656,7 @@
                             deviceId: item.device_id,
                         }); })), false));
                         console.log('end of function ', _reviewCache);
-                        return [4 /*yield*/, loadMoreCardsToReview()];
-                    case 5: return [2 /*return*/, _a.sent()];
+                        return [2 /*return*/];
                 }
             });
         });
@@ -1623,7 +1666,7 @@
     var endTimeout = null;
     function submitReview(savedCardId_1) {
         return __awaiter$8(this, arguments, void 0, function (savedCardId, options) {
-            var deviceId, auth, possibleSession, started, body, headers, response;
+            var possibleSession, started, body, response;
             var _this = this;
             if (options === void 0) { options = {}; }
             return __generator(this, function (_a) {
@@ -1631,8 +1674,6 @@
                     case 0:
                         if (endTimeout)
                             clearTimeout(endTimeout);
-                        deviceId = utils.device.getId();
-                        auth = services.supabase.auth.getSession();
                         possibleSession = ldb.get('liu-session');
                         if (!!possibleSession) return [3 /*break*/, 2];
                         return [4 /*yield*/, services.studySession.start()];
@@ -1649,21 +1690,11 @@
                                 return [2 /*return*/];
                             });
                         }); }, 1000 * 60 * 5); // 5 minutes
-                        body = __assign({ saved_card_id: savedCardId, client_reviewed_at: new Date().toISOString(), device_id: deviceId, session_id: possibleSession }, options);
-                        headers = {
-                            'Content-Type': 'application/json',
-                            'Authorization': "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token),
-                        };
-                        return [4 /*yield*/, fetch('/api/v1/reviews', {
-                                method: 'POST',
-                                headers: headers,
-                                body: JSON.stringify(body),
-                            })];
+                        body = __assign({ saved_card_id: savedCardId, client_reviewed_at: new Date().toISOString(), session_id: possibleSession }, options);
+                        return [4 /*yield*/, utils.http.post('/api/v1/reviews', body)];
                     case 3:
                         response = _a.sent();
-                        if (!response.ok)
-                            throw new Error('Failed to submit review');
-                        return [2 /*return*/, response.json()]; // { ok: true, next: { ... } }
+                        return [2 /*return*/, response];
                 }
             });
         });
@@ -10443,24 +10474,16 @@
     }
     function loadMoreCards() {
         return __awaiter$8(this, void 0, void 0, function () {
-            var device_id, auth, url, response, data, results;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var url, data, results;
+            var _a, _b;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
-                        device_id = utils.device.getId();
-                        auth = services.supabase.auth.getSession();
-                        url = "/api/v1/cards?limit=100&device_id=".concat(device_id);
-                        return [4 /*yield*/, fetch(url, {
-                                headers: {
-                                    Authorization: "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token)
-                                }
-                            })];
+                        url = "/api/v1/cards";
+                        return [4 /*yield*/, utils.http.get(url)];
                     case 1:
-                        response = _a.sent();
-                        return [4 /*yield*/, response.json()];
-                    case 2:
-                        data = _a.sent();
-                        results = data.items.map(function (item) { return ({
+                        data = _c.sent();
+                        results = (_b = (_a = data.items) === null || _a === void 0 ? void 0 : _a.cards) === null || _b === void 0 ? void 0 : _b.map(function (item) { return ({
                             added: false,
                             id: item.card_id,
                             front: item.front,
@@ -10483,30 +10506,22 @@
 
     function start() {
         return __awaiter$8(this, void 0, void 0, function () {
-            var deviceId, auth, headers, body, response;
+            var body, started;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        deviceId = utils.device.getId();
-                        auth = services.supabase.auth.getSession();
-                        headers = {
-                            'Content-Type': 'application/json',
-                            'Authorization': "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token),
-                        };
                         body = {
-                            "device_type": "web",
-                            "device_id": deviceId,
+                            device_type: "web",
                         };
-                        return [4 /*yield*/, fetch('/api/v1/reviews/sessions/start', {
-                                method: 'POST',
-                                headers: headers,
-                                body: JSON.stringify(body),
-                            })];
+                        return [4 /*yield*/, utils.http.post('/api/v1/reviews/sessions/start', body)];
                     case 1:
-                        response = _a.sent();
-                        if (!response.ok)
-                            throw new Error('Failed to submit review');
-                        return [2 /*return*/, response.json()]; // { ok: true, next: { ... } }
+                        started = _a.sent();
+                        ldb.set('liu-session', started.session_id);
+                        return [2 /*return*/, started
+                            // 	{
+                            // "session_id": "beb154e5-bfe1-4cbb-a168-8bb8f8bac92b"
+                            // }
+                        ];
                 }
             });
         });
@@ -10514,7 +10529,7 @@
     // End session
     function end() {
         return __awaiter$8(this, void 0, void 0, function () {
-            var sessionId, cardsStudied, cardsCorrect, totalTimeMs, deviceId, auth, headers, body, response;
+            var sessionId, cardsStudied, cardsCorrect, totalTimeMs, body, ended;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -10524,33 +10539,20 @@
                         cardsStudied = ldb.get('liu-cards-studied') || 0;
                         cardsCorrect = ldb.get('liu-cards-correct') || 0;
                         totalTimeMs = ldb.get('liu-total-time-ms') || 0;
-                        deviceId = utils.device.getId();
-                        auth = services.supabase.auth.getSession();
-                        headers = {
-                            'Content-Type': 'application/json',
-                            'Authorization': "Bearer ".concat(auth === null || auth === void 0 ? void 0 : auth.access_token),
-                        };
                         body = {
                             session_id: sessionId,
                             cards_studied: cardsStudied,
                             cards_correct: cardsCorrect,
                             total_time_ms: totalTimeMs,
-                            device_id: deviceId,
                         };
                         ldb.remove('liu-session'); // Clear session after ending
                         ldb.remove('liu-cards-studied');
                         ldb.remove('liu-cards-correct');
                         ldb.remove('liu-total-time-ms');
-                        return [4 /*yield*/, fetch('/api/v1/reviews/sessions/end', {
-                                method: 'POST',
-                                headers: headers,
-                                body: JSON.stringify(body),
-                            })];
+                        return [4 /*yield*/, utils.http.post('/api/v1/reviews/sessions/end', body)];
                     case 1:
-                        response = _a.sent();
-                        if (!response.ok)
-                            throw new Error('Failed to submit review');
-                        return [2 /*return*/, response.json()]; // { ok: true, next: { ... } }
+                        ended = _a.sent();
+                        return [2 /*return*/, ended];
                 }
             });
         });
@@ -10560,12 +10562,29 @@
         end: end,
     };
 
+    function save(cardId) {
+        return __awaiter$8(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, utils.http.post('/api/v1/saved-cards', { card_id: cardId })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/, true];
+                }
+            });
+        });
+    }
+    var savedCards = {
+        save: save
+    };
+
     var services = {
         timeline: timeline,
         studySession: studySession,
         supabase: supabase$1,
         reviews: reviews,
-        cards: cards
+        cards: cards,
+        savedCards: savedCards
     };
 
     var baseStyle$d = {
@@ -11202,11 +11221,11 @@
         submit.text('Save');
         base.append(submit);
         submit.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
-            var cardData, error_1;
+            var cardData, id, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        _a.trys.push([0, 2, 3, 4]);
+                        _a.trys.push([0, 3, 4, 5]);
                         if (!question.getValue() || !answer.getValue())
                             return [2 /*return*/];
                         submit.style({ opacity: '0.5', pointerEvents: 'none' });
@@ -11216,18 +11235,21 @@
                             back: answer.getValue(),
                             front_audio_url: frontAudio.getUrl(),
                             back_audio_url: backAudio.getUrl(),
-                            device_id: ldb.get('liucards-device-id')
                         };
-                        console.log('card data', cardData);
-                        return [4 /*yield*/, services.cards.save(cardData)];
+                        return [4 /*yield*/, services.cards.create(cardData)];
                     case 1:
-                        _a.sent();
-                        return [3 /*break*/, 4];
+                        id = _a.sent();
+                        console.log('Created card:', id);
+                        return [4 /*yield*/, services.savedCards.save(id)];
                     case 2:
+                        _a.sent();
+                        console.log('Card saved to collection');
+                        return [3 /*break*/, 5];
+                    case 3:
                         error_1 = _a.sent();
                         console.log('Failed to save card:', error_1);
-                        return [3 /*break*/, 4];
-                    case 3:
+                        return [3 /*break*/, 5];
+                    case 4:
                         question.setValue('');
                         answer.setValue('');
                         submit.style({ opacity: '1', pointerEvents: 'auto' });
@@ -11237,7 +11259,7 @@
                         submit.text('Save');
                         router.back();
                         return [7 /*endfinally*/];
-                    case 4: return [2 /*return*/];
+                    case 5: return [2 /*return*/];
                 }
             });
         }); };
@@ -11300,7 +11322,7 @@
         submit.text('Update');
         base.append(submit);
         submit.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
-            var cardData, locale;
+            var cardData, locale, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -11316,9 +11338,21 @@
                         if (locale) {
                             ldb.set("liucards-card-".concat(id), { front: question.getValue(), back: answer.getValue() });
                         }
-                        return [4 /*yield*/, services.cards.update(cardData)];
+                        _a.label = 1;
                     case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, services.cards.update(cardData)];
+                    case 2:
                         _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_1 = _a.sent();
+                        console.error('Failed to update card:', error_1);
+                        alert('Failed to update card. Please try again.');
+                        submit.style({ opacity: '1', pointerEvents: 'auto' });
+                        submit.text('Update');
+                        return [2 /*return*/];
+                    case 4:
                         router.goto('/'); // temp
                         question.setValue('');
                         answer.setValue('');
@@ -11492,6 +11526,14 @@
         use: use,
     };
 
+    var Loader = function () {
+        var base = Div();
+        base.cssClass({ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' });
+        var loadingSvg = Img(images.icons.loader, { width: 64 });
+        base.append(loadingSvg);
+        return base;
+    };
+
     var baseStyle$5 = {
         position: 'absolute',
         inset: '0',
@@ -11663,19 +11705,18 @@
         base.el.addEventListener('scroll', handleScrollStart);
         base.el.addEventListener('scrollend', handleScrollEnd);
         // load()
-        base.append(Div('Loading...').style({ padding: '20px', color: '#666', textAlign: 'center' }));
+        base.append(Loader());
         function load() {
             return __awaiter$8(this, void 0, void 0, function () {
                 var localCards, cards;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            base.empty();
                             localCards = ldb.get('liucards-cards') || [];
-                            console.log(localCards);
                             return [4 /*yield*/, services.timeline.loadMoreCards()];
                         case 1:
                             cards = _a.sent();
+                            base.empty();
                             __spreadArray(__spreadArray([], __read(localCards.reverse()), false), __read(cards), false).forEach(function (card) {
                                 var item = TimelineItem(card);
                                 base.append(item);
@@ -11936,22 +11977,27 @@
         body.style({ padding: '0', scrollBehavior: 'smooth' });
         base.append(title, body);
         base.cssClass(helpers.styles.PAGE_BASE);
-        var loading = Div('Loading...');
-        loading.style({ padding: '20px', color: '#666', textAlign: 'center' });
-        body.append(loading);
         //
         function render() {
-            return __awaiter$8(this, void 0, void 0, function () {
-                var cardData, done, reviewCard;
+            return __awaiter$8(this, arguments, void 0, function (fresh) {
+                var loading, cardData, done, reviewCard;
                 var _this = this;
+                if (fresh === void 0) { fresh = true; }
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            loading.remove();
+                            console.log('in render');
+                            if (fresh) {
+                                body.empty(); // for now
+                                loading = Loader();
+                                body.append(loading);
+                            }
                             return [4 /*yield*/, services.reviews.loadMoreCardsToReview()];
                         case 1:
                             cardData = _a.sent();
-                            console.log({ cardData: cardData });
+                            if (fresh) {
+                                body.empty(); // for now
+                            }
                             if (!cardData) {
                                 done = Div('\n\n\nNo cards to review, Good job!');
                                 done.cssClass({
@@ -11979,7 +12025,7 @@
                                             return [4 /*yield*/, services.reviews.submitReview(cardData.saved_card_id, { correct: true, think_time_ms: 1000, duration_ms: 1000, confidence: 2, rating: 2 })];
                                         case 1:
                                             _a.sent();
-                                            render();
+                                            render(false);
                                             return [2 /*return*/];
                                     }
                                 });
@@ -11992,7 +12038,7 @@
                                     ldb.set('liu-cards-studied', cards_studied + 1);
                                     total_time_ms = ldb.get('liu-total-time-ms') || 0;
                                     ldb.set('liu-total-time-ms', total_time_ms + 2000);
-                                    render();
+                                    render(false);
                                     return [2 /*return*/];
                                 });
                             }); });
@@ -12021,7 +12067,6 @@
                             case 0: return [4 /*yield*/, waitFor(200)];
                             case 1:
                                 _d.sent();
-                                body.empty(); // for now
                                 render();
                                 // if (from === '/menu') {
                                 //     base.style({ ...helpers.styles.PAGE_EXIT, ...EASE(0) })

@@ -7,7 +7,7 @@ const _reviewCache: any[] = []
 async function loadMoreCardsToReview(): Promise<any> {
 
 	console.log('in load More Cards', _reviewCache);
-	
+
 	// Check if we have cached reviews
 	if (_reviewCache.length > 0) {
 		return _reviewCache.shift()
@@ -37,18 +37,9 @@ async function loadMoreCardsToReview(): Promise<any> {
 		"count": 6
 	}
 	*/
-	const device_id = utils.device.getId()
-	const auth = services.supabase.auth.getSession()
-	const url = `/api/v1/reviews/queue?limit=100&device_id=${device_id}`
-	const response = await fetch(url, {
-		headers: {
-			Authorization: `Bearer ${auth?.access_token}`
-		}
-	})
-	const data = await response.json()
-	if (data.items.length === 0) {
-		console.log('--- length is 0');
-		
+	const url = `/api/v1/reviews/queue?limit=20`
+	const data = await utils.http.get(url)
+	if (data.items?.cards?.length === 0) {
 		await services.studySession.end()
 		return null
 	}
@@ -65,8 +56,6 @@ async function loadMoreCardsToReview(): Promise<any> {
 	})))
 	console.log('end of function ', _reviewCache);
 
-
-	return await loadMoreCardsToReview()
 }
 
 // Submit review
@@ -74,8 +63,6 @@ async function loadMoreCardsToReview(): Promise<any> {
 let endTimeout: NodeJS.Timeout | null = null;
 async function submitReview(savedCardId: string, options: Partial<{ correct: boolean, rating: 0 | 1 | 2 | 3, duration_ms: number, confidence: number, think_time_ms: number }> = {}) {
 	if (endTimeout) clearTimeout(endTimeout);
-	const deviceId = utils.device.getId();
-	const auth = services.supabase.auth.getSession()
 
 	let possibleSession = ldb.get('liu-session')
 	if (!possibleSession) {
@@ -90,25 +77,13 @@ async function submitReview(savedCardId: string, options: Partial<{ correct: boo
 	const body: any = {
 		saved_card_id: savedCardId,
 		client_reviewed_at: new Date().toISOString(),
-		device_id: deviceId,
 		session_id: possibleSession,
 		...options,
 	};
 
-	const headers = {
-		'Content-Type': 'application/json',
-		'Authorization': `Bearer ${auth?.access_token}`,
-	};
-
-	const response = await fetch('/api/v1/reviews', {
-		method: 'POST',
-		headers,
-		body: JSON.stringify(body),
-	});
-	if (!response.ok) throw new Error('Failed to submit review');
-	return response.json(); // { ok: true, next: { ... } }
+	const response = await utils.http.post('/api/v1/reviews', body);
+	return response
 }
-
 export default {
 	loadMoreCardsToReview,
 	submitReview

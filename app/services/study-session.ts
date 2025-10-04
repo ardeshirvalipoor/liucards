@@ -2,29 +2,15 @@ import services from ".";
 import ldb from "../base/lib/ldb";
 import utils from "../utils";
 
-const API_BASE = '/api/reviews'; // Shared base
 
 async function start() {
-	const deviceId = utils.device.getId();
-	const auth = services.supabase.auth.getSession()
-
-	const headers = {
-		'Content-Type': 'application/json',
-		'Authorization': `Bearer ${auth?.access_token}`,
-	}
-
 	const body: any = {
-		"device_type": "web",
-		"device_id": deviceId,
+		device_type: "web",
 	}
 
-	const response = await fetch('/api/v1/reviews/sessions/start', {
-		method: 'POST',
-		headers,
-		body: JSON.stringify(body),
-	});
-	if (!response.ok) throw new Error('Failed to submit review');
-	return response.json(); // { ok: true, next: { ... } }
+	const started = await utils.http.post<{ session_id: string }>('/api/v1/reviews/sessions/start', body);
+	ldb.set('liu-session', started.session_id)
+	return started
 		// 	{
 		// "session_id": "beb154e5-bfe1-4cbb-a168-8bb8f8bac92b"
 		// }
@@ -39,32 +25,20 @@ async function end() {
 	const cardsStudied = ldb.get('liu-cards-studied') || 0;
 	const cardsCorrect = ldb.get('liu-cards-correct') || 0;
 	const totalTimeMs = ldb.get('liu-total-time-ms') || 0;
-	const deviceId = utils.device.getId();
-	const auth = services.supabase.auth.getSession()
 
-	const headers = {
-		'Content-Type': 'application/json',
-		'Authorization': `Bearer ${auth?.access_token}`,
-	}
 	const body: any = {
 		session_id: sessionId,
 		cards_studied: cardsStudied,
 		cards_correct: cardsCorrect,
 		total_time_ms: totalTimeMs,
-		device_id: deviceId,
 	};
 	ldb.remove('liu-session') // Clear session after ending
 	ldb.remove('liu-cards-studied')
 	ldb.remove('liu-cards-correct')
 	ldb.remove('liu-total-time-ms')
 
-	const response = await fetch('/api/v1/reviews/sessions/end', {
-		method: 'POST',
-		headers,
-		body: JSON.stringify(body),
-	});
-	if (!response.ok) throw new Error('Failed to submit review');
-	return response.json(); // { ok: true, next: { ... } }
+	const ended = await utils.http.post('/api/v1/reviews/sessions/end', body);
+	return ended
 }
 
 export default {

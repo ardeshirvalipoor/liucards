@@ -3,7 +3,6 @@ import { SubmitReviewBody } from '../schemas/review'
 import { nextWithFsrs } from './fsrs'
 
 async function getQueue(identifier: string, limit: number, isDeviceId: boolean = false) {
-    console.log('Getting review queue for:', identifier, limit, isDeviceId);
     // Due cards, earliest first; optionally exclude 'new'
     let q = supabaseAdmin
         .from('saved_cards')
@@ -38,7 +37,6 @@ async function getQueue(identifier: string, limit: number, isDeviceId: boolean =
         state: row.state,
         due_at: row.due_at,
     }))
-    console.log( items );
 
     return { items, count: count ?? 0 }
 }

@@ -10,40 +10,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const services_1 = require("../services");
-const review_1 = require("../schemas/review");
-function getQueue(req, res) {
+const review_session_1 = require("../schemas/review-session");
+function start(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
+        var _a, _b;
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-        const parsed = review_1.getQueueQuerySchema.safeParse(req.query);
-        if (!parsed.success)
-            return res.status(400).json({ error: 'Invalid query' });
-        const { limit, device_id } = parsed.data;
-        let identifier;
-        let isDeviceId = false;
-        if (userId) {
-            identifier = userId;
-        }
-        else {
-            if (!device_id)
-                return res.status(401).json({ error: 'Device ID or login required' });
-            identifier = device_id;
-            isDeviceId = true;
-        }
-        try {
-            const { items, count } = yield services_1.default.reviews.getQueue(identifier, limit, isDeviceId);
-            res.json({ items, count });
-        }
-        catch (e) {
-            res.status(500).json({ error: e.message || 'Failed to load queue' });
-        }
-    });
-}
-function post(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-        const parsed = review_1.submitReviewBodySchema.safeParse(req.body);
+        const parsed = review_session_1.startSessionBodySchema.safeParse(req.body);
         if (!parsed.success) {
             const msg = parsed.error.issues.map(e => e.message).join(', ');
             return res.status(400).json({ error: msg });
@@ -54,22 +26,48 @@ function post(req, res) {
             identifier = userId;
         }
         else {
-            const device_id = parsed.data.device_id;
-            if (!device_id)
-                return res.status(401).json({ error: 'Device ID or login required' });
+            const device_id = (_b = req.user) === null || _b === void 0 ? void 0 : _b.device_id;
             identifier = device_id;
             isDeviceId = true;
         }
         try {
-            const next = yield services_1.default.reviews.submit(identifier, parsed.data, isDeviceId);
-            res.json({ ok: true, next });
+            const sessionId = yield services_1.default.studySessions.startSession(identifier, parsed.data.device_type, isDeviceId);
+            res.json({ session_id: sessionId });
         }
         catch (e) {
-            res.status(500).json({ error: e.message || 'Review failed' });
+            res.status(500).json({ error: e.message || 'Failed to start session' });
+        }
+    });
+}
+function end(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a, _b;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const parsed = review_session_1.endSessionBodySchema.safeParse(req.body);
+        if (!parsed.success) {
+            const msg = parsed.error.issues.map(e => e.message).join(', ');
+            return res.status(400).json({ error: msg });
+        }
+        let identifier;
+        let isDeviceId = false;
+        if (userId) {
+            identifier = userId;
+        }
+        else {
+            const device_id = (_b = req.user) === null || _b === void 0 ? void 0 : _b.device_id;
+            identifier = device_id;
+            isDeviceId = true;
+        }
+        try {
+            yield services_1.default.studySessions.endSession(identifier, parsed.data, isDeviceId);
+            res.json({ ok: true });
+        }
+        catch (e) {
+            res.status(500).json({ error: e.message || 'Failed to end session' });
         }
     });
 }
 exports.default = {
-    getQueue,
-    post
+    start,
+    end
 };

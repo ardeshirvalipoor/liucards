@@ -1,0 +1,46 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.toggleFollowUpdates = toggleFollowUpdates;
+const supabase_1 = require("../../configs/supabase");
+const helpers_1 = require("./helpers");
+function toggleFollowUpdates(params) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { userId, deviceId, cardId, followUpdates } = params;
+        if (!cardId) {
+            throw new Error('Card ID is required');
+        }
+        try {
+            const auth = helpers_1.default.getAuthFilter(userId, deviceId);
+            const { data, error } = yield supabase_1.supabaseAdmin
+                .from('saved_cards')
+                .update({
+                follow_updates: followUpdates,
+                updated_at: new Date().toISOString()
+            })
+                .eq('card_id', cardId)
+                .eq(auth.column, auth.value)
+                .select('id, follow_updates')
+                .single();
+            if (error || !data) {
+                throw new Error('Saved card not found');
+            }
+            return {
+                saved_card_id: data.id,
+                follow_updates: data.follow_updates
+            };
+        }
+        catch (error) {
+            console.error('Toggle follow updates failed:', error);
+            throw error;
+        }
+    });
+}

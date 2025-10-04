@@ -12,5 +12,5 @@ const auth_1 = require("./auth");
 const errors_1 = require("./errors");
 exports.default = {
     errors: errors_1.default,
-    auth: auth_1.default
+    auth: auth_1.default,
 };

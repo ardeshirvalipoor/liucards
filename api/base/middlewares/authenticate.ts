@@ -1,11 +1,8 @@
+import { User } from '@supabase/supabase-js';
 import { Router, Request, Response, NextFunction } from 'express'
 
 // Extend the Request interface to include the user property
-declare module 'express-serve-static-core' {
-    interface Request {
-        user?: any;
-    }
-}
+
 import * as jwt from 'jsonwebtoken'
 
 function token(secret: string) {

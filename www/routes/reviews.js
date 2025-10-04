@@ -2,12 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.router = void 0;
 const express_1 = require("express");
-const controllers_1 = require("../controllers");
+const handlers_1 = require("../handlers");
 const middlewares_1 = require("../middlewares");
 exports.router = (0, express_1.Router)();
-exports.router.use(middlewares_1.default.auth.optional);
-exports.router.get('/queue', controllers_1.default.reviews.getQueue);
-exports.router.post('/', controllers_1.default.reviews.post);
-exports.router.post('/sessions/start', controllers_1.default.studySessions.start);
-exports.router.post('/sessions/end', controllers_1.default.studySessions.end);
+exports.router.use(middlewares_1.default.auth.requireUserOrDevice);
+exports.router.get('/queue', handlers_1.default.reviews.getQueue);
+exports.router.post('/', handlers_1.default.reviews.post);
+exports.router.post('/sessions/start', handlers_1.default.studySessions.start);
+exports.router.post('/sessions/end', handlers_1.default.studySessions.end);
 exports.default = exports.router;
