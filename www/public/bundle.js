@@ -121,6 +121,9 @@
             music: '/images/music.svg?v=2',
             arrow: '/images/arrow-right.svg?v=2',
             loader: '/images/loader.svg?v=2',
+            plus: '/images/plus.svg?v=2',
+            star: '/images/star.svg?v=2',
+            remove: '/images/remove.svg?v=2',
         }
     };
 
@@ -131,7 +134,7 @@
         sizes: sizes};
 
     var _a;
-    var baseStyle$e = (_a = {
+    var baseStyle$f = (_a = {
             margin: '0',
             transition: 'all .16s',
             overflow: 'hidden',
@@ -403,7 +406,7 @@
             return raw;
         }
     }
-    function remove$1(key) {
+    function remove$3(key) {
         localStorage.removeItem(key);
     }
     function clear() {
@@ -413,7 +416,7 @@
         get: get$3,
         set: save$1,
         save: save$1,
-        remove: remove$1,
+        remove: remove$3,
         clear: clear
     };
 
@@ -1060,10 +1063,43 @@
             });
         });
     }
+    // DELETE
+    function remove$2(url_1, data_1) {
+        return __awaiter$8(this, arguments, void 0, function (url, data, customHeader) {
+            var res, errorText, err_4;
+            if (customHeader === void 0) { customHeader = {}; }
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 5, , 6]);
+                        return [4 /*yield*/, fetch(url, {
+                                method: 'DELETE',
+                                headers: __assign(__assign({}, getDefaultHeader()), customHeader),
+                                body: JSON.stringify(data),
+                            })];
+                    case 1:
+                        res = _a.sent();
+                        if (!!res.ok) return [3 /*break*/, 3];
+                        return [4 /*yield*/, res.text()];
+                    case 2:
+                        errorText = _a.sent();
+                        throw new Error("HTTP ".concat(res.status, ": ").concat(errorText));
+                    case 3: return [4 /*yield*/, res.json()];
+                    case 4: return [2 /*return*/, _a.sent()];
+                    case 5:
+                        err_4 = _a.sent();
+                        console.error('HTTP DELETE Error:', err_4);
+                        throw err_4;
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    }
     var http = {
         post: post$1,
         put: put$1,
         get: get$2,
+        remove: remove$2,
     };
 
     var utils = {
@@ -1104,6 +1140,20 @@
             });
         });
     }
+    function remove$1(payload) {
+        return __awaiter$8(this, void 0, void 0, function () {
+            var resp;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, utils.http.remove("/api/v1/cards/".concat(payload.id), payload)];
+                    case 1:
+                        resp = _a.sent();
+                        _cardsCache.delete(payload.id);
+                        return [2 /*return*/, resp];
+                }
+            });
+        });
+    }
     // Create new card
     function create(params) {
         return __awaiter$8(this, void 0, void 0, function () {
@@ -1130,6 +1180,7 @@
         create: create,
         update: update,
         getById: getById,
+        remove: remove$1,
         setCacheItem: setCacheItem
     };
 
@@ -10588,7 +10639,7 @@
         savedCards: savedCards
     };
 
-    var baseStyle$d = {
+    var baseStyle$e = {
         width: '48px',
         height: '48px',
         borderRadius: '24px',
@@ -10601,14 +10652,14 @@
 
     var ArrowButton = function (direction) {
         var base = withRipple(Div());
-        base.cssClass(baseStyle$d);
+        base.cssClass(baseStyle$e);
         var icon = Img(images.icons.arrow, { width: 32, height: 32 });
         base.append(icon);
         base.el.onclick = base.emit.bind(base, 'click');
         return base;
     };
 
-    var baseStyle$c = {
+    var baseStyle$d = {
         position: 'relative',
         width: '40px',
         height: '40px',
@@ -10628,7 +10679,7 @@
         var currentAudio = null;
         var base = Div();
         withRipple(base, { bg: '#ccc' });
-        base.cssClass(baseStyle$c);
+        base.cssClass(baseStyle$d);
         var play = Img(images.icons.play, { width: 30, height: 30 });
         play.cssClass(playStyle);
         play.el.onclick = playAudio;
@@ -10756,7 +10807,7 @@
         });
     };
 
-    var baseStyle$b = {
+    var baseStyle$c = {
         padding: '10px',
         border: '1px solid #ccc',
         borderRadius: '34px',
@@ -10788,7 +10839,7 @@
     ];
     var LanguageSelect = function () {
         var base = Select();
-        base.cssClass(baseStyle$b);
+        base.cssClass(baseStyle$c);
         LANGUAGES.forEach(function (lang) {
             var option = Option(lang.code, lang.name);
             base.append(option);
@@ -10803,7 +10854,7 @@
         });
     };
 
-    var baseStyle$a = {
+    var baseStyle$b = {
         position: 'relative',
     };
     var generateStyle = {
@@ -10812,7 +10863,7 @@
 
     var AddAudio = function () {
         var base = Div();
-        base.cssClass(baseStyle$a);
+        base.cssClass(baseStyle$b);
         var audio = null;
         var text = '';
         var generate = withRipple(Div());
@@ -11166,11 +11217,11 @@
         });
     };
 
-    var baseStyle$9 = __assign(__assign({}, helpers.styles.PAGE_BASE), { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', overflowY: 'auto' });
+    var baseStyle$a = __assign(__assign({}, helpers.styles.PAGE_BASE), { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', overflowY: 'auto' });
 
     var AddFlashcardPage = function () {
         var base = Div();
-        base.cssClass(baseStyle$9);
+        base.cssClass(baseStyle$a);
         var title = PageHeader('Add Flashcard');
         base.append(title);
         var question = DInput('Question', 'Question', { type: 'textarea' });
@@ -11294,12 +11345,12 @@
             } }));
     };
 
-    var baseStyle$8 = __assign(__assign({}, helpers.styles.PAGE_BASE), { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', overflowY: 'auto' });
+    var baseStyle$9 = __assign(__assign({}, helpers.styles.PAGE_BASE), { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', overflowY: 'auto' });
 
     var EditFlashcardPage = function () {
         var id = '';
         var base = Div();
-        base.cssClass(baseStyle$8);
+        base.cssClass(baseStyle$9);
         var title = PageHeader('Edit Flashcard');
         base.append(title);
         var question = DInput('Question', 'Question', { type: 'textarea' });
@@ -11433,21 +11484,7 @@
         return Object.assign(base, { enter: enter, exit: exit });
     };
 
-    var Bar = function (height, options) {
-        if (height === void 0) { height = 4; }
-        if (options === void 0) { options = {}; }
-        var base = Base('div');
-        base.cssClass({
-            width: '100%',
-            height: height + 'px',
-            backgroundColor: options.bg || '#000',
-            // opacity: '.9',
-            transition: 'all .2s'
-        });
-        return base;
-    };
-
-    var baseStyle$7 = __assign(__assign({}, ROUND), { position: 'relative', width: '60px', height: '60px', padding: '18px', transition: 'all .16s', zIndex: '99999', flexShrink: '0', cursor: 'pointer', '&:hover': {
+    var baseStyle$8 = __assign(__assign(__assign({}, ROUND), CENTER), { position: 'relative', width: '60px', height: '60px', transition: 'all .16s', zIndex: '99999', flexShrink: '0', cursor: 'pointer', '&:hover': {
             opacity: '.8',
         }, '&:active': {
             transform: 'scale(.9)' // Tdod: fix this. if we have other transform, it will not be overriden
@@ -11455,21 +11492,23 @@
 
     var PlusIcon = function () {
         var base = Div();
-        base.cssClass(baseStyle$7);
+        base.cssClass(baseStyle$8);
         withRipple(base, { bg: '#ccc' });
-        var v = Bar(3.5, { bg: '#000' });
-        var h = Bar(3.5, { bg: '#000' });
-        v.style({
-            transform: 'rotate(90deg) translateX(10px)'
-        });
-        h.style({
-            transform: 'translateY(6px)'
-        });
-        base.append(v, h);
+        var img = Img(images.icons.plus, { width: 40 });
+        base.append(img);
+        // const v = Bar(3.5, { bg: '#000' })
+        // const h = Bar(3.5, { bg: '#000' })
+        // v.style({
+        //     transform: 'rotate(90deg) translateX(10px)'
+        // })
+        // h.style({
+        //     transform: 'translateY(6px)'
+        // })
+        // base.append(v, h)
         return base;
     };
 
-    var baseStyle$6 = {
+    var baseStyle$7 = {
         height: '60px',
         backgroundColor: '#ffffff33',
         backdropFilter: 'blur(3px)',
@@ -11478,7 +11517,7 @@
         alignItems: 'center',
         justifyContent: 'flex-end',
         position: 'absolute',
-        top: '0',
+        top: 'env(safe-area-inset-top)',
         left: '0',
         right: '0',
         paddingTop: 'env(safe-area-inset-top)',
@@ -11487,7 +11526,7 @@
 
     var HomeHeader = function () {
         var base = Div();
-        base.cssClass(baseStyle$6);
+        base.cssClass(baseStyle$7);
         var plus = PlusIcon();
         base.append(plus);
         plus.el.onclick = function () { return router.goto('/add-flashcard'); };
@@ -11535,7 +11574,33 @@
         return base;
     };
 
-    var baseStyle$5 = {
+    var emitter = createEmitter();
+
+    var Edit = function () {
+        var base = withRipple(Div());
+        base.cssClass({ cursor: 'pointer', position: 'relative' });
+        var icon = Img(images.icons.pen, { width: 28 });
+        base.append(icon);
+        return base;
+    };
+
+    var Remove = function () {
+        var base = withRipple(Div());
+        base.cssClass({ cursor: 'pointer', position: 'relative' });
+        var icon = Img(images.icons.remove, { width: 30 });
+        base.append(icon);
+        return base;
+    };
+
+    var Star = function () {
+        var base = withRipple(Div());
+        base.cssClass({ cursor: 'pointer', position: 'relative' });
+        var icon = Img(images.icons.star, { width: 27 });
+        base.append(icon);
+        return base;
+    };
+
+    var baseStyle$6 = {
         position: 'absolute',
         inset: '0',
         display: 'grid',
@@ -11546,6 +11611,7 @@
         boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
         backfaceVisibility: 'hidden',
         webkitBackfaceVisibility: 'hidden',
+        border: '3px solid #28bc9b5c'
     };
     var contentStyle = {
         fontSize: '22px',
@@ -11557,7 +11623,7 @@
 
     var CardFace = function (text, audio) {
         var base = Div();
-        base.cssClass(baseStyle$5);
+        base.cssClass(baseStyle$6);
         var content = Div(text);
         content.cssClass(contentStyle);
         base.append(content);
@@ -11569,7 +11635,7 @@
         return base;
     };
 
-    var baseStyle$4 = __assign(__assign({ width: '100%', height: '100%', perspective: '1000px', webkitTapHighlightColor: 'transparent', userSelect: 'none', touchAction: 'manipulation', cursor: 'pointer', paddingTop: '40px' }, CENTER), { flexDirection: 'column' });
+    var baseStyle$5 = __assign(__assign({ width: '100%', height: '100%', perspective: '1000px', webkitTapHighlightColor: 'transparent', userSelect: 'none', touchAction: 'manipulation', cursor: 'pointer', paddingTop: '40px' }, CENTER), { flexDirection: 'column' });
     var innerStyle = {
         position: 'relative',
         width: '75%',
@@ -11578,7 +11644,7 @@
         transition: 'transform 250ms ease',
     };
 
-    var baseStyle$3 = {
+    var baseStyle$4 = {
         marginTop: '16mpx',
         position: 'relative'
     };
@@ -11587,7 +11653,7 @@
         var base = Div();
         var icon = Img(images.icons.flip, { width: 44 });
         withRipple(base, { bg: '#ccc' });
-        base.style(baseStyle$3);
+        base.style(baseStyle$4);
         base.append(icon);
         base.el.onclick = function () {
             base.emit('click');
@@ -11595,7 +11661,7 @@
         return base;
     };
 
-    var baseStyle$2 = {
+    var baseStyle$3 = {
         margin: '38px 0 0 0',
         position: 'relative'
     };
@@ -11605,7 +11671,7 @@
         var base = Div();
         var icon = Img(images.icons.like, { width: 32 });
         withRipple(base, { bg: '#ccc' });
-        base.style(baseStyle$2);
+        base.style(baseStyle$3);
         base.append(icon);
         if (liked) {
             base.el.style.filter = 'invert(86%) sepia(16%) saturate(1000%) hue-rotate(132deg) brightness(95%) contrast(90%)';
@@ -11633,34 +11699,79 @@
         // Todo: add an interface
         var isFlipped = false;
         var base = Div();
-        base.cssClass(baseStyle$4);
+        base.cssClass(baseStyle$5);
         var inner = Div();
         inner.cssClass(innerStyle);
         base.append(inner);
         var front = CardFace(_card.front, _card.front_audio_url);
         inner.append(front);
         var back = CardFace(_card.back, _card.back_audio_url);
-        back.cssClass({ transform: 'rotateY(180deg)', backgroundColor: '#d4e8e9' });
+        back.cssClass({ transform: 'rotateY(180deg)', backgroundColor: '#e7e7e7ff' });
         inner.append(back);
         var flip = Flip();
         flip.on('click', handleFlip);
         base.append(flip);
+        var buttons = Div();
+        buttons.cssClass({ display: 'flex', flexDirection: 'row', gap: '48px', marginTop: '36px' });
+        base.append(buttons);
         Like(_card.added);
         // base.append(like)
         var loggedInUser = (_b = (_a = supabase$1.auth.getSession()) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id;
         if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
-            var edit = withRipple(Div().style({ position: 'relative' }));
-            edit.append(Img(images.icons.pen, { width: 28, height: 28 }));
-            edit.cssClass({ marginTop: '36px', filter: 'saturate(0)' });
-            base.append(edit);
+            var remove = Remove();
+            buttons.append(remove);
+            remove.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    router.goto("/flashcards/remove/".concat(_card.id));
+                    ldb.set("liucards-card-".concat(_card.id), _card);
+                    return [2 /*return*/];
+                });
+            }); };
+            var edit = Edit();
+            buttons.append(edit);
             edit.el.onclick = function () {
                 router.goto("/flashcards/edit/".concat(_card.id));
                 ldb.set("liucards-card-".concat(_card.id), _card);
             };
             // Show delete button
         }
+        var star = Star();
+        buttons.append(star);
+        // star.on('click', async () => {
+        //     const isAdded = state.get('is-card-added', {}) as Record<string, boolean>
+        //     if (_card.added) {
+        //         // remove from deck
+        //         const { error } = await supabase.from('deck_cards').delete().eq('card_id', _card.id)
+        //         if (error) {
+        //             console.error('Error removing card from deck:', error.message)
+        //             return
+        //         }
+        //         _card.added = false
+        //         isAdded[_card.id] = false
+        //         state.set('is-card-added', isAdded)
+        //         star.cssClass({ filter: 'saturate(0.5)', opacity: '0.8' })
+        //     } else {
+        //         // add to deck
+        //         const { error } = await supabase.from('deck_cards').insert({ card_id: _card.id })
+        //         if (error) {
+        //             console.error('Error adding card to deck:', error.message)
+        //             return
+        //         }
+        //         _card.added = true
+        //         isAdded[_card.id] = true
+        //         state.set('is-card-added', isAdded)
+        //         star.cssClass({ filter: 'saturate(1)', opacity: '1' })
+        //     }
+        // })
         // inner.el.addEventListener('touchstart', handleTouchStart)
         // inner.el.addEventListener('touchend', handleTouchEnd)
+        emitter.on('card-removed', function (_a) {
+            var id = _a.id;
+            if (id === _card.id) {
+                console.log('Card removed, flipping to front if needed');
+                base.remove(); // remove from DOM
+            }
+        });
         function handleFlip() {
             return __awaiter$8(this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
@@ -11683,17 +11794,17 @@
         return base;
     };
 
-    var baseStyle$1 = __assign(__assign({ width: '100%', height: '100%' }, CENTER), { flexShrink: '0', scrollSnapAlign: 'start', backgroundColor: 'white' });
+    var baseStyle$2 = __assign(__assign({ width: '100%', height: '100%' }, CENTER), { flexShrink: '0', scrollSnapAlign: 'start', backgroundColor: 'white' });
 
     var TimelineItem = function (_card) {
         var base = Div();
-        base.cssClass(baseStyle$1);
+        base.cssClass(baseStyle$2);
         var card = Card(_card);
         base.append(card);
         return base;
     };
 
-    var baseStyle = {
+    var baseStyle$1 = {
         height: '100%',
         overflowY: 'scroll',
         scrollSnapType: 'y mandatory',
@@ -11702,7 +11813,7 @@
 
     var Timeline = function () {
         var base = Div();
-        base.cssClass(baseStyle);
+        base.cssClass(baseStyle$1);
         base.el.addEventListener('scroll', handleScrollStart);
         base.el.addEventListener('scrollend', handleScrollEnd);
         // load()
@@ -11793,8 +11904,6 @@
         });
         return Object.assign(base, { exit: exit });
     };
-
-    var emitter = createEmitter();
 
     function Scrollable(base) {
         base.el.addEventListener('scroll', onScroll, PASSIVE);
@@ -11939,6 +12048,94 @@
             } });
     };
 
+    var baseStyle = __assign(__assign({}, helpers.styles.PAGE_BASE), { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', overflowY: 'auto' });
+
+    var RemoveFlashcardPage = function () {
+        var id = '';
+        var base = Div();
+        base.cssClass(baseStyle);
+        var title = PageHeader('Delete Flashcard');
+        base.append(title);
+        var submit = DButton();
+        submit.cssClass({
+            padding: '10px 20px',
+            backgroundColor: '#d11228ff',
+            marginTop: '100px'
+        });
+        submit.text('I am sure, delete it');
+        base.append(submit);
+        submit.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
+            var cardData, locale, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        submit.style({ opacity: '0.5', pointerEvents: 'none' });
+                        submit.text('Saving...');
+                        cardData = {
+                            device_id: ldb.get('liucards-device-id'),
+                            id: id
+                        };
+                        locale = ldb.get("liucards-card-".concat(id));
+                        if (locale) {
+                            ldb.remove("liucards-card-".concat(id));
+                        }
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, services.cards.remove(cardData)];
+                    case 2:
+                        _a.sent();
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_1 = _a.sent();
+                        console.error('Failed to update card:', error_1);
+                        alert('Failed to update card. Please try again.');
+                        submit.style({ opacity: '1', pointerEvents: 'auto' });
+                        submit.text('Update');
+                        return [2 /*return*/];
+                    case 4:
+                        base.emit('card-removed', { id: id });
+                        router.goto('/'); // temp
+                        submit.style({ opacity: '1', pointerEvents: 'auto' });
+                        submit.text('Update');
+                        return [2 /*return*/];
+                }
+            });
+        }); };
+        return Object.assign(base, __assign(__assign({}, base), { exit: function (_a) {
+                return __awaiter$8(this, arguments, void 0, function (_b) {
+                    _b.to;
+                    return __generator(this, function (_d) {
+                        base.style(helpers.styles.PAGE_EXIT);
+                        return [2 /*return*/];
+                    });
+                });
+            }, enter: function (_a) {
+                return __awaiter$8(this, arguments, void 0, function (_b) {
+                    var card;
+                    _b.from; var _d = _b.params, params = _d === void 0 ? { cardId: '' } : _d;
+                    return __generator(this, function (_e) {
+                        switch (_e.label) {
+                            case 0: 
+                            // temp solution:
+                            return [4 /*yield*/, waitFor(200)];
+                            case 1:
+                                // temp solution:
+                                _e.sent();
+                                console.log('edit enter', params);
+                                id = params.id;
+                                return [4 /*yield*/, services.cards.getById(id)];
+                            case 2:
+                                card = _e.sent();
+                                console.log('edit enter', card);
+                                base.style(__assign(__assign({}, helpers.styles.PAGE_ENTER), EASE(.16)), 50);
+                                return [2 /*return*/];
+                        }
+                    });
+                });
+            } }));
+    };
+
     var ReviewCard = function (_card) {
         var base = Card(_card);
         var buttons = Div();
@@ -12081,6 +12278,20 @@
         });
     };
 
+    var Bar = function (height, options) {
+        if (height === void 0) { height = 4; }
+        if (options === void 0) { options = {}; }
+        var base = Base('div');
+        base.cssClass({
+            width: '100%',
+            height: height + 'px',
+            backgroundColor: options.bg || '#000',
+            // opacity: '.9',
+            transition: 'all .2s'
+        });
+        return base;
+    };
+
     var BackIcon = function () {
         var height = 2;
         var base = Base();
@@ -12190,13 +12401,14 @@
     var menuIcon = MenuIcon();
     var backIcon = BackIcon();
     app.append(menuIcon, backIcon, view);
-    app.cssClass(baseStyle$e);
+    app.cssClass(baseStyle$f);
     var routes = {
         '/': HomePage,
         '/menu': MenuPage,
         '/about': AboutPage,
         '/login': LoginPage,
         '/add-flashcard': AddFlashcardPage,
+        '/flashcards/remove/:id': RemoveFlashcardPage,
         '/flashcards/edit/:id': EditFlashcardPage,
         '/review': ReviewPage
     };

@@ -13,7 +13,8 @@ export interface CreateCardPayload extends CardPayload {
 }
 
 export interface EditCardPayload extends CreateCardPayload {
-    id: string
+    id: string,
+    deleted_at?: string
 }
 
 export interface ListCardsParams {

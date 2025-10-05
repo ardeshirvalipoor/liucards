@@ -6,7 +6,11 @@ import router from '../../base/lib/router'
 import state from '../../base/services/state'
 import { waitFor } from '../../base/utils/wait'
 import images from '../../configs/images'
+import { emitter } from '../../services/emitter'
 import supabase from '../../services/supabase'
+import { Edit } from '../edit/edit'
+import { Remove } from '../remove/remove'
+import { Star } from '../star/star'
 import { CardFace } from './card-face'
 import { baseStyle, innerStyle } from './card.style'
 import { Flip } from './flip'
@@ -35,32 +39,76 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
     inner.append(front)
 
     const back = CardFace(_card.back, _card.back_audio_url)
-    back.cssClass({ transform: 'rotateY(180deg)', backgroundColor: '#d4e8e9' })
+    back.cssClass({ transform: 'rotateY(180deg)', backgroundColor: '#e7e7e7ff' })
     inner.append(back)
 
     const flip = Flip()
     flip.on('click', handleFlip)
     base.append(flip)
 
+    const buttons = Div()
+    buttons.cssClass({display: 'flex', flexDirection: 'row', gap: '48px', marginTop: '36px'})
+    base.append(buttons)
     const like = Like(_card.added)
     // base.append(like)
 
     const loggedInUser = supabase.auth.getSession()?.user?.id
     if (_card.deviceId === ldb.get('liucards-device-id') || _card.userId === loggedInUser) {
-        const edit = withRipple(Div().style({position: 'relative'})) 
-        edit.append(Img(images.icons.pen, { width: 28, height: 28 }))
-        edit.cssClass({ marginTop: '36px', filter: 'saturate(0)' })
-        base.append(edit)
+        const remove = Remove()
+        buttons.append(remove)
+        remove.el.onclick = async () => {
+            router.goto(`/flashcards/remove/${_card.id}`)
+            ldb.set(`liucards-card-${_card.id}`, _card)
+        }   
+        const edit = Edit()
+        buttons.append(edit)
         edit.el.onclick = () => {
             router.goto(`/flashcards/edit/${_card.id}`)
             ldb.set(`liucards-card-${_card.id}`, _card)
         }
+        
+                
         // Show delete button
     }
+
+    const star = Star()
+    buttons.append(star)
+    // star.on('click', async () => {
+    //     const isAdded = state.get('is-card-added', {}) as Record<string, boolean>
+    //     if (_card.added) {
+    //         // remove from deck
+    //         const { error } = await supabase.from('deck_cards').delete().eq('card_id', _card.id)
+    //         if (error) {
+    //             console.error('Error removing card from deck:', error.message)
+    //             return
+    //         }
+    //         _card.added = false
+    //         isAdded[_card.id] = false
+    //         state.set('is-card-added', isAdded)
+    //         star.cssClass({ filter: 'saturate(0.5)', opacity: '0.8' })
+    //     } else {
+    //         // add to deck
+    //         const { error } = await supabase.from('deck_cards').insert({ card_id: _card.id })
+    //         if (error) {
+    //             console.error('Error adding card to deck:', error.message)
+    //             return
+    //         }
+    //         _card.added = true
+    //         isAdded[_card.id] = true
+    //         state.set('is-card-added', isAdded)
+    //         star.cssClass({ filter: 'saturate(1)', opacity: '1' })
+    //     }
+    // })
 
     // inner.el.addEventListener('touchstart', handleTouchStart)
     // inner.el.addEventListener('touchend', handleTouchEnd)
 
+    emitter.on('card-removed', ({ id }) => {
+        if (id === _card.id) {
+            console.log('Card removed, flipping to front if needed');
+            base.remove() // remove from DOM
+        }
+    })
     async function handleFlip() {
         await waitFor(100)
         // const isScrolling = state.get('timeline-scrolling')

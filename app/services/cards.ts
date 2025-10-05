@@ -21,7 +21,12 @@ async function update(payload: any) {
 
     return true
 }
+async function remove(payload: any) {
+    const resp = await utils.http.remove(`/api/v1/cards/${payload.id}`, payload)
+    _cardsCache.delete(payload.id)
 
+    return resp
+}
 
 // Create new card
 async function create(params: CardPayload) {
@@ -53,5 +58,6 @@ export default {
     create,
     update,
     getById,
+    remove,
     setCacheItem
 }

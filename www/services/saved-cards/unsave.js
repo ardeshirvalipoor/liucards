@@ -22,7 +22,7 @@ function default_1(params) {
             const auth = helpers_1.default.getAuthFilter(userId, deviceId);
             const { data, error } = yield supabase_1.supabaseAdmin
                 .from('saved_cards')
-                .delete()
+                .update({ deleted_at: new Date().toISOString() })
                 .eq('card_id', cardId)
                 .eq(auth.column, auth.value)
                 .select('id')

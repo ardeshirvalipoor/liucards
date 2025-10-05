@@ -14,7 +14,7 @@ export default async function (params: UnsaveCardParams): Promise<{ removed: boo
         
         const { data, error } = await supabaseAdmin
             .from('saved_cards')
-            .delete()
+            .update({ deleted_at: new Date().toISOString() })
             .eq('card_id', cardId)
             .eq(auth.column, auth.value)
             .select('id')

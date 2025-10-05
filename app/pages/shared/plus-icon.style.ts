@@ -1,12 +1,12 @@
-import { ROUND } from "../../base/helpers/style";
+import { CENTER, ROUND } from "../../base/helpers/style";
 import { CS } from "../../base/utils/styler";
 
 export const baseStyle: CS = {
     ...ROUND,
+    ...CENTER,
     position: 'relative',
     width: '60px',
     height: '60px',
-    padding: '18px',
     transition: 'all .16s',
     zIndex: '99999',
     flexShrink: '0',

@@ -86,8 +86,33 @@ async function put<T = any>(url: string, data: any, customHeader = {}): Promise<
     }
 }
 
+// DELETE
+async function remove<T = any>(url: string, data: any, customHeader = {}): Promise<T> {
+    try {
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                ...getDefaultHeader(),  
+                ...customHeader
+            },
+            body: JSON.stringify(data),
+        })
+
+        if (!res.ok) {
+            const errorText = await res.text()
+            throw new Error(`HTTP ${res.status}: ${errorText}`)
+        }
+
+        return await res.json() as T
+    } catch (err) {
+        console.error('HTTP DELETE Error:', err);
+        throw err;
+    }
+}
+
 export default {
     post,
     put,
     get,
+    remove,
 }

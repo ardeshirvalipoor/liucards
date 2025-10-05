@@ -8,5 +8,9 @@ export default {
         music: '/images/music.svg?v=2',
         arrow: '/images/arrow-right.svg?v=2',
         loader: '/images/loader.svg?v=2',
+        plus: '/images/plus.svg?v=2',
+        dotsh: '/images/dotsh.svg?v=2',
+        star: '/images/star.svg?v=2',
+        remove: '/images/remove.svg?v=2',
     }
 }

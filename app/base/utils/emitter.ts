@@ -115,3 +115,4 @@ export type EVENTS =
     | 'child-appended'
     | 'paste'
     | 'theme-changed'
+    | 'card-removed'

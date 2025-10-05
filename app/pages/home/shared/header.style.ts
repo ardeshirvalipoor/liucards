@@ -9,7 +9,7 @@ export const baseStyle: CS  = {
             alignItems: 'center',
             justifyContent: 'flex-end',
             position: 'absolute',
-            top: '0',
+            top: 'env(safe-area-inset-top)',
             left: '0',
             right: '0',
             paddingTop: 'env(safe-area-inset-top)',
