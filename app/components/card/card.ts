@@ -72,7 +72,7 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
     }
 
     const star = Star()
-    buttons.append(star)
+    // buttons.append(star)
     // star.on('click', async () => {
     //     const isAdded = state.get('is-card-added', {}) as Record<string, boolean>
     //     if (_card.added) {

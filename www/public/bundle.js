@@ -11735,8 +11735,8 @@
             };
             // Show delete button
         }
-        var star = Star();
-        buttons.append(star);
+        Star();
+        // buttons.append(star)
         // star.on('click', async () => {
         //     const isAdded = state.get('is-card-added', {}) as Record<string, boolean>
         //     if (_card.added) {
@@ -11967,7 +11967,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.4.4').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.4.5').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });
