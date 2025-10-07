@@ -6,6 +6,7 @@ import { waitFor } from '../../base/utils/wait'
 import { AddAudio } from '../../components/add-audio/add-audio'
 import helpers from '../../helpers'
 import services from '../../services'
+import { emitter } from '../../services/emitter'
 import { DButton } from '../shared/d-button'
 import { DInput } from '../shared/d-input'
 import { PageHeader } from '../shared/page-header'
@@ -37,6 +38,19 @@ export const AddFlashcardPage = () => {
 		}
 	}
 
+	question.el.onpaste = (e) => {
+		setTimeout(() => {
+			const text = question.getValue()
+			console.log('pasted', text);
+			frontAudio.setText(text)
+			if (text && text !== '<br>' ) {
+				frontAudio.style({ opacity: '1' })
+			} else {
+				frontAudio.style({ opacity: '0' })
+			}
+		}, 100);
+	}
+
 	const hr = Div()
 	hr.cssClass({
 		height: '1px',
@@ -61,7 +75,17 @@ export const AddFlashcardPage = () => {
 			backAudio.style({ opacity: '0' })
 		}
 	}
-
+	answer.el.onpaste = (e) => {
+		setTimeout(() => {
+			const text = answer.getValue()
+			backAudio.setText(text)
+			if (text && text !== '<br>' ) {
+				backAudio.style({ opacity: '1' })
+			} else {
+				backAudio.style({ opacity: '0' })
+			}
+		}, 100);
+	}
 	const submit = DButton()
 	submit.cssClass({
 		padding: '10px 20px',
@@ -88,6 +112,8 @@ export const AddFlashcardPage = () => {
 			await services.savedCards.save(id)
 			console.log('Card saved to collection');
 			
+			emitter.emit('new-card', { id, ...cardData, added: true, deviceId: ldb.get('liucards-device-id'), userId: services.supabase.auth.getSession()?.user?.id || null })
+			emitter.emit('flashcard-added', { id, ...cardData, added: true, deviceId: ldb.get('liucards-device-id'), userId: services.supabase.auth.getSession()?.user?.id || null })
 
 		} catch (error) {
 			console.log('Failed to save card:', error);
@@ -97,8 +123,8 @@ export const AddFlashcardPage = () => {
 			answer.setValue('')
 			submit.style({ opacity: '1', pointerEvents: 'auto' })
 			submit.text('Save')
-			frontAudio.resetUI()
-			backAudio.resetUI()
+			frontAudio.style({ opacity: '0' })
+			backAudio.style({ opacity: '0' })	
 			submit.text('Save')
 			router.back()
 		}

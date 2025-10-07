@@ -18,7 +18,21 @@ export const CardFace = (text: string, audio?: string) => {
         base.append(audioPlay)
     }
 
-    return base
+    return Object.assign(base, {
+        ...base,
+        update(newText: string, newAudio?: string) {
+            content.text(newText)   
+            if (newAudio) {
+                if (audio) {
+                    // update existing audio
+                } else {
+                    // add new audio
+                }
+            } else {
+                // remove audio
+            }
+        }
+    })
 }
 
 

@@ -6,6 +6,7 @@ import router from '../../base/lib/router'
 import state from '../../base/services/state'
 import { waitFor } from '../../base/utils/wait'
 import images from '../../configs/images'
+import { ICard } from '../../interfaces/card'
 import { emitter } from '../../services/emitter'
 import supabase from '../../services/supabase'
 import { Edit } from '../edit/edit'
@@ -16,7 +17,7 @@ import { baseStyle, innerStyle } from './card.style'
 import { Flip } from './flip'
 import { Like } from './like'
 
-export const Card = (_card: { id: string, front: string, back: string, added: boolean, deviceId: string, userId: string, front_audio_url?: string, back_audio_url?: string }) => {
+export const Card = (_card: ICard) => {
 
     const localData = ldb.get(`liucards-card-${_card.id}`)
     if (localData) {
@@ -47,7 +48,7 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
     base.append(flip)
 
     const buttons = Div()
-    buttons.cssClass({display: 'flex', flexDirection: 'row', gap: '48px', marginTop: '36px'})
+    buttons.cssClass({ display: 'flex', flexDirection: 'row', gap: '48px', marginTop: '36px' })
     base.append(buttons)
     const like = Like(_card.added)
     // base.append(like)
@@ -59,15 +60,15 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
         remove.el.onclick = async () => {
             router.goto(`/flashcards/remove/${_card.id}`)
             ldb.set(`liucards-card-${_card.id}`, _card)
-        }   
+        }
         const edit = Edit()
         buttons.append(edit)
         edit.el.onclick = () => {
             router.goto(`/flashcards/edit/${_card.id}`)
             ldb.set(`liucards-card-${_card.id}`, _card)
         }
-        
-                
+
+
         // Show delete button
     }
 
@@ -103,12 +104,6 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
     // inner.el.addEventListener('touchstart', handleTouchStart)
     // inner.el.addEventListener('touchend', handleTouchEnd)
 
-    emitter.on('card-removed', ({ id }) => {
-        if (id === _card.id) {
-            console.log('Card removed, flipping to front if needed');
-            base.remove() // remove from DOM
-        }
-    })
     async function handleFlip() {
         await waitFor(100)
         // const isScrolling = state.get('timeline-scrolling')
@@ -121,5 +116,19 @@ export const Card = (_card: { id: string, front: string, back: string, added: bo
         inner.el.style.transform = 'rotateY(0deg)'
     }
 
-    return base
+    return Object.assign(base, {
+        ...base,
+        update(newCard: ICard) {
+            _card = { ..._card, ...newCard }
+            front.update(_card.front, _card.front_audio_url)
+            back.update(_card.back, _card.back_audio_url)
+            // if (_card.added) {
+            //     like.setLiked(true)
+            // } else {
+            //     like.setLiked(false)
+
+            // }
+            // // if (newCard.added) {
+        }
+    })
 }

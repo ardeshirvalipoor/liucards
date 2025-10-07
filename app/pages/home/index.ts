@@ -16,6 +16,10 @@ export const HomePage = () => {
 
     const timeline = Timeline()
     base.append(timeline)
+    setTimeout(() => {
+        
+        timeline.load()
+    }, 100);
 
     // return base
     async function enter({ query, from, to, data, params }: IRouteParams) {
@@ -25,11 +29,11 @@ export const HomePage = () => {
         if (from?.startsWith('/flashcards/edit')) {
             console.log('>>> returning');
         }
-            // return
-        // } else {
-
-            timeline.load()
-        // }
+        if (!from?.startsWith('/add-flashcard')) {
+            console.log('>>> loading timeline', from);
+            // temp
+            // timeline.load()
+        }
     }
     return Object.assign(base, {
         enter

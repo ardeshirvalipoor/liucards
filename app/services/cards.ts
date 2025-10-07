@@ -54,10 +54,15 @@ function setCacheItem(id: string, data: any) {
     _cardsCache.set(id, data)
 }
 
+function getCacheItem(id: string) {
+    return _cardsCache.get(id)
+}
+
 export default {
     create,
     update,
     getById,
     remove,
-    setCacheItem
+    setCacheItem,
+    getCacheItem,
 }

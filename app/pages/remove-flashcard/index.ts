@@ -5,6 +5,7 @@ import router, { IRouteParams } from '../../base/lib/router'
 import { waitFor } from '../../base/utils/wait'
 import helpers from '../../helpers'
 import services from '../../services'
+import { emitter } from '../../services/emitter'
 import { DButton } from '../shared/d-button'
 import { DInput } from '../shared/d-input'
 import { PageHeader } from '../shared/page-header'
@@ -48,7 +49,7 @@ export const RemoveFlashcardPage = () => {
             submit.text('Update')
             return
         }
-        base.emit('card-removed', { id })
+        emitter.emit('card-removed', { id })
         router.goto('/') // temp
         submit.style({ opacity: '1', pointerEvents: 'auto' })
         submit.text('Update')

@@ -81,6 +81,10 @@ export interface BaseEventMap {
     'mutate': Node
     'theme-changed': string
     'change': string
+    'flashcard-added': any
+    'new-card': any
+    'card-removed': { id: string }
+    'card-updated': { id: string }
 }
 
 export type EVENTS =

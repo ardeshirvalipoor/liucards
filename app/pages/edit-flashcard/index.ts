@@ -5,6 +5,7 @@ import router, { IRouteParams } from '../../base/lib/router'
 import { waitFor } from '../../base/utils/wait'
 import helpers from '../../helpers'
 import services from '../../services'
+import { emitter } from '../../services/emitter'
 import { DButton } from '../shared/d-button'
 import { DInput } from '../shared/d-input'
 import { PageHeader } from '../shared/page-header'
@@ -58,6 +59,8 @@ export const EditFlashcardPage = () => {
 		}
 		try {
 			await services.cards.update(cardData)
+			services.cards.setCacheItem(id, cardData)
+			emitter.emit('card-updated', { id })
 		} catch (error) {
 			console.error('Failed to update card:', error)
 			alert('Failed to update card. Please try again.')

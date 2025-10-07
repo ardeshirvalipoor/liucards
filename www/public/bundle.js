@@ -1176,12 +1176,16 @@
     function setCacheItem(id, data) {
         _cardsCache.set(id, data);
     }
+    function getCacheItem(id) {
+        return _cardsCache.get(id);
+    }
     var cards = {
         create: create,
         update: update,
         getById: getById,
         remove: remove$1,
-        setCacheItem: setCacheItem
+        setCacheItem: setCacheItem,
+        getCacheItem: getCacheItem,
     };
 
     var dbReadyPromise = new Promise(function (resolve, reject) {
@@ -10925,6 +10929,8 @@
         });
     };
 
+    var emitter = createEmitter();
+
     var Button = function () {
         var base = Base('button');
         base.cssClass({
@@ -11241,6 +11247,19 @@
                 frontAudio.style({ opacity: '0' });
             }
         };
+        question.el.onpaste = function (e) {
+            setTimeout(function () {
+                var text = question.getValue();
+                console.log('pasted', text);
+                frontAudio.setText(text);
+                if (text && text !== '<br>') {
+                    frontAudio.style({ opacity: '1' });
+                }
+                else {
+                    frontAudio.style({ opacity: '0' });
+                }
+            }, 100);
+        };
         var hr = Div();
         hr.cssClass({
             height: '1px',
@@ -11264,6 +11283,18 @@
                 backAudio.style({ opacity: '0' });
             }
         };
+        answer.el.onpaste = function (e) {
+            setTimeout(function () {
+                var text = answer.getValue();
+                backAudio.setText(text);
+                if (text && text !== '<br>') {
+                    backAudio.style({ opacity: '1' });
+                }
+                else {
+                    backAudio.style({ opacity: '0' });
+                }
+            }, 100);
+        };
         var submit = DButton();
         submit.cssClass({
             padding: '10px 20px',
@@ -11274,10 +11305,11 @@
         base.append(submit);
         submit.el.onclick = function () { return __awaiter$8(void 0, void 0, void 0, function () {
             var cardData, id, error_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var _a, _b, _c, _d;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
-                        _a.trys.push([0, 3, 4, 5]);
+                        _e.trys.push([0, 3, 4, 5]);
                         if (!question.getValue() || !answer.getValue())
                             return [2 /*return*/];
                         submit.style({ opacity: '0.5', pointerEvents: 'none' });
@@ -11290,15 +11322,17 @@
                         };
                         return [4 /*yield*/, services.cards.create(cardData)];
                     case 1:
-                        id = _a.sent();
+                        id = _e.sent();
                         console.log('Created card:', id);
                         return [4 /*yield*/, services.savedCards.save(id)];
                     case 2:
-                        _a.sent();
+                        _e.sent();
                         console.log('Card saved to collection');
+                        emitter.emit('new-card', __assign(__assign({ id: id }, cardData), { added: true, deviceId: ldb.get('liucards-device-id'), userId: ((_b = (_a = services.supabase.auth.getSession()) === null || _a === void 0 ? void 0 : _a.user) === null || _b === void 0 ? void 0 : _b.id) || null }));
+                        emitter.emit('flashcard-added', __assign(__assign({ id: id }, cardData), { added: true, deviceId: ldb.get('liucards-device-id'), userId: ((_d = (_c = services.supabase.auth.getSession()) === null || _c === void 0 ? void 0 : _c.user) === null || _d === void 0 ? void 0 : _d.id) || null }));
                         return [3 /*break*/, 5];
                     case 3:
-                        error_1 = _a.sent();
+                        error_1 = _e.sent();
                         console.log('Failed to save card:', error_1);
                         return [3 /*break*/, 5];
                     case 4:
@@ -11306,8 +11340,8 @@
                         answer.setValue('');
                         submit.style({ opacity: '1', pointerEvents: 'auto' });
                         submit.text('Save');
-                        frontAudio.resetUI();
-                        backAudio.resetUI();
+                        frontAudio.style({ opacity: '0' });
+                        backAudio.style({ opacity: '0' });
                         submit.text('Save');
                         router.back();
                         return [7 /*endfinally*/];
@@ -11396,6 +11430,8 @@
                         return [4 /*yield*/, services.cards.update(cardData)];
                     case 2:
                         _a.sent();
+                        services.cards.setCacheItem(id, cardData);
+                        emitter.emit('card-updated', { id: id });
                         return [3 /*break*/, 4];
                     case 3:
                         error_1 = _a.sent();
@@ -11574,8 +11610,6 @@
         return base;
     };
 
-    var emitter = createEmitter();
-
     var Edit = function () {
         var base = withRipple(Div());
         base.cssClass({ cursor: 'pointer', position: 'relative' });
@@ -11632,7 +11666,9 @@
             audioPlay.cssClass(playButtonStyle);
             base.append(audioPlay);
         }
-        return base;
+        return Object.assign(base, __assign(__assign({}, base), { update: function (newText, newAudio) {
+                content.text(newText);
+            } }));
     };
 
     var baseStyle$5 = __assign(__assign({ width: '100%', height: '100%', perspective: '1000px', webkitTapHighlightColor: 'transparent', userSelect: 'none', touchAction: 'manipulation', cursor: 'pointer', paddingTop: '40px' }, CENTER), { flexDirection: 'column' });
@@ -11765,13 +11801,6 @@
         // })
         // inner.el.addEventListener('touchstart', handleTouchStart)
         // inner.el.addEventListener('touchend', handleTouchEnd)
-        emitter.on('card-removed', function (_a) {
-            var id = _a.id;
-            if (id === _card.id) {
-                console.log('Card removed, flipping to front if needed');
-                base.remove(); // remove from DOM
-            }
-        });
         function handleFlip() {
             return __awaiter$8(this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
@@ -11791,7 +11820,17 @@
                 });
             });
         }
-        return base;
+        return Object.assign(base, __assign(__assign({}, base), { update: function (newCard) {
+                _card = __assign(__assign({}, _card), newCard);
+                front.update(_card.front, _card.front_audio_url);
+                back.update(_card.back, _card.back_audio_url);
+                // if (_card.added) {
+                //     like.setLiked(true)
+                // } else {
+                //     like.setLiked(false)
+                // }
+                // // if (newCard.added) {
+            } }));
     };
 
     var baseStyle$2 = __assign(__assign({ width: '100%', height: '100%' }, CENTER), { flexShrink: '0', scrollSnapAlign: 'start', backgroundColor: 'white' });
@@ -11801,7 +11840,10 @@
         base.cssClass(baseStyle$2);
         var card = Card(_card);
         base.append(card);
-        return base;
+        return Object.assign(base, __assign(__assign({}, base), { update: function (newCard) {
+                card.update(newCard);
+                // if (newCard.added) {
+            } }));
     };
 
     var baseStyle$1 = {
@@ -11811,6 +11853,7 @@
         WebkitOverflowScrolling: 'touch',
     };
 
+    var _cards = {};
     var Timeline = function () {
         var base = Div();
         base.cssClass(baseStyle$1);
@@ -11818,12 +11861,42 @@
         base.el.addEventListener('scrollend', handleScrollEnd);
         // load()
         base.append(Loader());
+        emitter.on('flashcard-added', function (card) {
+            console.log('>>> new card added', card);
+            var item = TimelineItem(card);
+            services.cards.setCacheItem(card.id, card);
+            _cards[card.id] = item;
+            base.prepend(item);
+            setTimeout(function () {
+                base.el.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 600);
+        });
+        emitter.on('card-removed', function (_a) {
+            var id = _a.id;
+            console.log('>>> card removed event', id, _cards[id]);
+            setTimeout(function () {
+                var _a, _b, _c;
+                base.el.scrollTo({ top: (_b = (_a = _cards[id]) === null || _a === void 0 ? void 0 : _a.el) === null || _b === void 0 ? void 0 : _b.clientHeight, behavior: 'smooth' });
+                (_c = _cards[id]) === null || _c === void 0 ? void 0 : _c.remove();
+                delete _cards[id];
+            }, 600);
+        });
+        emitter.on('card-updated', function (_a) {
+            var id = _a.id;
+            console.log('>>> card updated event', id, _cards[id]);
+            setTimeout(function () {
+                var cached = services.cards.getCacheItem(id);
+                var card = _cards[id];
+                card.update(cached);
+            }, 200);
+        });
         function load() {
             return __awaiter$8(this, void 0, void 0, function () {
                 var localCards, cards;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
+                            console.log('Loading timeline...');
                             localCards = ldb.get('liucards-cards') || [];
                             return [4 /*yield*/, services.timeline.loadMoreCards()];
                         case 1:
@@ -11831,8 +11904,10 @@
                             base.empty();
                             __spreadArray(__spreadArray([], __read(localCards.reverse()), false), __read(cards), false).forEach(function (card) {
                                 var item = TimelineItem(card);
+                                _cards[card.id] = item;
                                 base.append(item);
                             });
+                            console.log('Cards loaded', _cards);
                             return [2 /*return*/];
                     }
                 });
@@ -11854,6 +11929,9 @@
         base.append(header);
         var timeline = Timeline();
         base.append(timeline);
+        setTimeout(function () {
+            timeline.load();
+        }, 100);
         // return base
         function enter(_a) {
             return __awaiter$8(this, arguments, void 0, function (_b) {
@@ -11867,9 +11945,11 @@
                             if (from === null || from === void 0 ? void 0 : from.startsWith('/flashcards/edit')) {
                                 console.log('>>> returning');
                             }
-                            // return
-                            // } else {
-                            timeline.load();
+                            if (!(from === null || from === void 0 ? void 0 : from.startsWith('/add-flashcard'))) {
+                                console.log('>>> loading timeline', from);
+                                // temp
+                                // timeline.load()
+                            }
                             return [2 /*return*/];
                     }
                 });
@@ -11967,7 +12047,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.4.5').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.4.8').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });
@@ -12094,7 +12174,7 @@
                         submit.text('Update');
                         return [2 /*return*/];
                     case 4:
-                        base.emit('card-removed', { id: id });
+                        emitter.emit('card-removed', { id: id });
                         router.goto('/'); // temp
                         submit.style({ opacity: '1', pointerEvents: 'auto' });
                         submit.text('Update');
