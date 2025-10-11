@@ -5,7 +5,7 @@ import images from "../../configs/images"
 
 export const Edit = () => {
     const base = withRipple(Div())
-    base.cssClass({ cursor: 'pointer', position: 'relative' })
+    base.cssClass({ cursor: 'pointer', position: 'relative', paddingTop: '1px' })
     const icon = Img(images.icons.pen, {width: 28})
     base.append(icon)
     return base

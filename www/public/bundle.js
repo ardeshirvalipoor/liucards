@@ -601,7 +601,7 @@
 
     var __emitter$1 = createEmitter();
     var __views = [];
-    var __history = [];
+    var __isNavigating = false;
     function init$1(_a) {
         var routes = _a.routes, view = _a.view, home = _a.home, _b = _a.root, root = _b === void 0 ? '' : _b, preventAutoStart = _a.preventAutoStart;
         var _view = {
@@ -612,60 +612,98 @@
             root: root,
         };
         __views.push(_view);
-        setupLinkClickListener();
+        // Setup listeners only once
+        if (__views.length === 1) {
+            setupListeners();
+        }
         if (!preventAutoStart) {
-            goto(home || location.pathname + location.search);
+            goto(home || location.pathname + location.search, { replace: true });
         }
     }
     function goto(path, options) {
         if (options === void 0) { options = {}; }
-        var url = new URL(path, location.origin);
-        var pathname = url.pathname;
-        var query = Object.fromEntries(url.searchParams.entries());
-        var fromPath = location.pathname;
-        __views.forEach(function (_view) {
-            var _a;
-            var routeKey = matchRoute(pathname, _view.routes, _view.root);
-            if (!routeKey) {
-                __emitter$1.emit('error', { path: path, message: 'Route not found' });
-                return;
-            }
-            var _b = createRoutePattern(_view.root + routeKey), regex = _b.regex, paramNames = _b.paramNames;
-            var match = pathname.match(regex);
-            if (!match)
-                return;
-            var params = paramNames.reduce(function (acc, name, idx) {
-                acc[name] = match[idx + 1];
-                return acc;
-            }, {});
-            if (shouldSkipNavigation(_view, routeKey, params, query))
-                return;
-            (_a = _view.currentComponent) === null || _a === void 0 ? void 0 : _a.exit({ to: pathname, from: _view.currentRoute, params: params, query: query, data: options.data });
-            if (!options.replace) {
-                __history.push(pathname);
-                history.pushState(options.data, '', path);
-            }
-            else {
-                __history[__history.length - 1] = pathname;
-                history.replaceState(options.data, '', path);
-            }
-            __emitter$1.emit('change', { path: path, params: params, route: routeKey, from: _view.currentRoute, to: pathname, query: query, data: options.data });
-            var component = _view.components[routeKey];
-            if (!component) {
-                component = _view.routes[routeKey]();
-                _view.components[routeKey] = component;
-                _view.view.append(component);
-            }
-            _view.currentComponent = component;
-            _view.currentRouteKey = routeKey;
-            _view.currentParams = params;
-            _view.currentQuery = query;
-            _view.currentRoute = pathname;
-            component.enter({ params: params, from: fromPath, to: pathname, query: query, data: options.data });
-        });
+        // Prevent navigation loops
+        if (__isNavigating)
+            return;
+        __isNavigating = true;
+        try {
+            var url = new URL(path, location.origin);
+            var pathname_1 = url.pathname;
+            var query_1 = Object.fromEntries(url.searchParams.entries());
+            var fromPath_1 = location.pathname;
+            __views.forEach(function (_view) {
+                var _a, _b;
+                var routeKey = matchRoute(pathname_1, _view.routes, _view.root);
+                if (!routeKey) {
+                    __emitter$1.emit('error', { path: path, message: 'Route not found' });
+                    return;
+                }
+                var _c = createRoutePattern(_view.root + routeKey), regex = _c.regex, paramNames = _c.paramNames;
+                var match = pathname_1.match(regex);
+                if (!match)
+                    return;
+                var params = paramNames.reduce(function (acc, name, idx) {
+                    acc[name] = match[idx + 1];
+                    return acc;
+                }, {});
+                // Skip if same route with same params
+                if (shouldSkipNavigation(_view, routeKey, params, query_1)) {
+                    return;
+                }
+                // Exit current component
+                (_a = _view.currentComponent) === null || _a === void 0 ? void 0 : _a.exit({
+                    to: pathname_1,
+                    from: _view.currentRoute,
+                    params: params,
+                    query: query_1,
+                    data: options.data
+                });
+                // Update browser history (only if not triggered by popstate)
+                if (!options.skipHistory) {
+                    if (!options.replace) {
+                        history.pushState({ path: path, data: options.data }, '', path);
+                    }
+                    else {
+                        history.replaceState({ path: path, data: options.data }, '', path);
+                    }
+                }
+                __emitter$1.emit('change', {
+                    path: path,
+                    params: params,
+                    route: routeKey,
+                    from: _view.currentRoute,
+                    to: pathname_1,
+                    query: query_1,
+                    data: options.data
+                });
+                // Get or create component
+                var component = _view.components[routeKey];
+                if (!component) {
+                    component = _view.routes[routeKey]();
+                    _view.components[routeKey] = component;
+                    _view.view.append(component);
+                }
+                // Update view state
+                _view.currentComponent = component;
+                _view.currentRouteKey = routeKey;
+                _view.currentParams = params;
+                _view.currentQuery = query_1;
+                _view.currentRoute = pathname_1;
+                // Enter new component
+                component.enter({
+                    params: params,
+                    from: fromPath_1,
+                    to: pathname_1,
+                    query: query_1,
+                    data: options.data || ((_b = history.state) === null || _b === void 0 ? void 0 : _b.data)
+                });
+            });
+        }
+        finally {
+            __isNavigating = false;
+        }
     }
     function back() {
-        __history.pop();
         history.back();
     }
     function matchRoute(pathname, routes, root) {
@@ -676,10 +714,12 @@
     }
     function createRoutePattern(route) {
         var paramNames = [];
-        var pattern = route.replace(/:[^\/]+/g, function (match) {
+        var pattern = route
+            .replace(/:[^\/]+/g, function (match) {
             paramNames.push(match.slice(1));
             return '([^/]+)';
-        }).replace(/\*/g, '.*');
+        })
+            .replace(/\*/g, '.*');
         var regex = new RegExp("^".concat(pattern, "$"));
         return { regex: regex, paramNames: paramNames };
     }
@@ -688,9 +728,11 @@
             JSON.stringify(_view.currentParams) === JSON.stringify(params) &&
             JSON.stringify(_view.currentQuery) === JSON.stringify(query);
     }
-    function setupLinkClickListener() {
+    function setupListeners() {
+        // Handle link clicks
         document.addEventListener('click', function (event) {
             var element = event.target;
+            // Find closest anchor tag
             while (element && !(element instanceof HTMLAnchorElement)) {
                 element = element.parentElement;
             }
@@ -702,18 +744,30 @@
                 }
             }
         });
+        // Handle browser back/forward
+        window.addEventListener('popstate', function () {
+            goto(location.pathname + location.search, {
+                skipHistory: true // Don't push to history again
+            });
+        });
     }
     function isInternalLink(link) {
         var _a;
         return link.origin === location.origin || ((_a = link.getAttribute('href')) === null || _a === void 0 ? void 0 : _a.startsWith('/'));
     }
-    window.addEventListener('popstate', function () {
-        goto(location.pathname + location.search, { replace: true });
-    });
     function getQuery(key) {
-        return Object.fromEntries(new URLSearchParams(location.search).entries())[key];
+        var entries = Object.fromEntries(new URLSearchParams(location.search).entries());
+        return key ? entries[key] : entries;
     }
-    var router = __assign(__assign({ init: init$1, goto: goto, back: back, getQuery: getQuery, history: __history }, __emitter$1), { removePreviousPath: function () { return history.replaceState(null, '', location.pathname); } });
+    function getCurrentRoute() {
+        return location.pathname + location.search;
+    }
+    function clearComponentCache() {
+        __views.forEach(function (_view) {
+            _view.components = {};
+        });
+    }
+    var router = __assign({ init: init$1, goto: goto, back: back, getQuery: getQuery, getCurrentRoute: getCurrentRoute, clearComponentCache: clearComponentCache }, __emitter$1);
 
     var ABSOLUTE = {
         position: 'absolute',
@@ -11520,7 +11574,7 @@
         return Object.assign(base, { enter: enter, exit: exit });
     };
 
-    var baseStyle$8 = __assign(__assign(__assign({}, ROUND), CENTER), { position: 'relative', width: '60px', height: '60px', transition: 'all .16s', zIndex: '99999', flexShrink: '0', cursor: 'pointer', '&:hover': {
+    var baseStyle$8 = __assign(__assign(__assign({}, ROUND), CENTER), { position: 'absolute', top: 'env(safe-area-inset-top) + 0px)', width: '60px', height: '60px', transition: 'all .16s', zIndex: '99999', flexShrink: '0', cursor: 'pointer', '&:hover': {
             opacity: '.8',
         }, '&:active': {
             transform: 'scale(.9)' // Tdod: fix this. if we have other transform, it will not be overriden
@@ -11612,7 +11666,7 @@
 
     var Edit = function () {
         var base = withRipple(Div());
-        base.cssClass({ cursor: 'pointer', position: 'relative' });
+        base.cssClass({ cursor: 'pointer', position: 'relative', paddingTop: '1px' });
         var icon = Img(images.icons.pen, { width: 28 });
         base.append(icon);
         return base;
@@ -11645,7 +11699,8 @@
         boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
         backfaceVisibility: 'hidden',
         webkitBackfaceVisibility: 'hidden',
-        border: '3px solid #28bc9b5c'
+        border: '3px solid #28bc9b5c',
+        overflowY: 'auto',
     };
     var contentStyle = {
         fontSize: '22px',
@@ -11945,10 +12000,11 @@
                             if (from === null || from === void 0 ? void 0 : from.startsWith('/flashcards/edit')) {
                                 console.log('>>> returning');
                             }
+                            console.log('>>> loading home', from);
                             if (!(from === null || from === void 0 ? void 0 : from.startsWith('/add-flashcard'))) {
-                                console.log('>>> loading timeline', from);
+                                console.log('!!! rendering home');
                                 // temp
-                                // timeline.load()
+                                timeline.load();
                             }
                             return [2 /*return*/];
                     }
@@ -12047,7 +12103,7 @@
         var login = MenuItem('Login with Google');
         var logout = MenuItem('Logout');
         var review = MenuItem('Review', '/review');
-        var version = Div('Version 1.4.8').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
+        var version = Div('Version 1.4.9').style({ fontWeight: '100', fontSize: '14px', color: '#666', marginTop: '40px' });
         welcome.style({ display: 'none', marginBottom: '10px', fontSize: '18px', color: 'rgb(11 187 148)' });
         login.style({ display: 'none' });
         logout.style({ display: 'none' });

@@ -12,7 +12,8 @@ export const baseStyle: CS = {
     boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
     backfaceVisibility: 'hidden',
     webkitBackfaceVisibility: 'hidden',
-    border: '3px solid #28bc9b5c'
+    border: '3px solid #28bc9b5c',
+    overflowY: 'auto',
 
 }
 

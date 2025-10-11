@@ -29,10 +29,13 @@ export const HomePage = () => {
         if (from?.startsWith('/flashcards/edit')) {
             console.log('>>> returning');
         }
-        if (!from?.startsWith('/add-flashcard')) {
-            console.log('>>> loading timeline', from);
+
+        console.log('>>> loading home', from);
+        if (!from?.startsWith('/add-flashcard')) {  
+            console.log('!!! rendering home');
+            
             // temp
-            // timeline.load()
+            timeline.load()
         }
     }
     return Object.assign(base, {

@@ -4,7 +4,8 @@ import { CS } from "../../base/utils/styler";
 export const baseStyle: CS = {
     ...ROUND,
     ...CENTER,
-    position: 'relative',
+    position: 'absolute',
+    top: 'env(safe-area-inset-top) + 0px)',
     width: '60px',
     height: '60px',
     transition: 'all .16s',

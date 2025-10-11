@@ -22,6 +22,7 @@ function getQueue(identifier_1, limit_1) {
       cards!inner ( front, back, front_audio_url, back_audio_url )
     `, { count: 'exact' })
             .lte('due_at', new Date().toISOString())
+            .is('deleted_at', null)
             .order('due_at', { ascending: true })
             .limit(limit);
         if (isDeviceId) {
